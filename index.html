@@ -1,0 +1,3219 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Kostenvorschlag-/Rechnungs-Builder</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg: #f6f7fb;
+        --card: #fff;
+        --muted: #6c757d;
+      }
+      body {
+        background: #f6f7fb;
+        padding: 18px;
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial;
+      }
+      .left-pane {
+        max-height: 75vh;
+        overflow: auto;
+        background: #fff;
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid #e5e7eb;
+      }
+      .right-pane {
+        max-height: 85vh;
+        overflow: auto;
+        background: #fff;
+        border-radius: 8px;
+        padding: 18px;
+        border: 1px solid #e5e7eb;
+      }
+      .item-row:hover {
+        background: #f8f9fb;
+      }
+      .small-muted {
+        font-size: 0.85rem;
+        color: #6c757d;
+      }
+      .logo-preview {
+        width: 180px;
+        height: 70px;
+        object-fit: contain;
+        background: #fff;
+        border: 1px dashed #ddd;
+        padding: 6px;
+      }
+      .collapse-toggle {
+        cursor: pointer;
+      }
+      .tree-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .qty-input,
+      .price-input {
+        width: 110px;
+      }
+
+      .page-break {
+        display: block;
+        page-break-before: always; /* erzwingt Umbruch vor diesem Element */
+      }
+
+      @media (max-width: 900px) {
+        .two-col {
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .left-pane,
+        .right-pane {
+          max-height: none;
+          overflow: visible;
+          padding: 12px;
+        }
+
+        .left-pane {
+          margin-bottom: 12px;
+        }
+
+        /* Inputs und Buttons etwas größer */
+        input.form-control,
+        select.form-select,
+        textarea.form-control {
+          font-size: 0.95rem;
+        }
+
+        .btn {
+          width: 100%;
+          margin-bottom: 6px;
+        }
+
+        /* Tabelle scrollen */
+        .right-pane table {
+          display: block;
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        /* Reduziere Schrift in Tabellen */
+        .right-pane table th,
+        .right-pane table td {
+          font-size: 0.85rem;
+          padding: 4px 6px;
+        }
+
+        /* Zusammenfassungsbereich: alles untereinander */
+        .col-md-8,
+        .col-md-4 {
+          width: 100%;
+          max-width: 100%;
+        }
+
+        /* Textareas in Zusammenfassung etwas kleiner */
+        #introText,
+        #notes {
+          font-size: 0.9rem;
+        }
+      }
+      @media print {
+        #controls,
+        .search-wrap,
+        .left-pane {
+          display: none !important;
+        }
+        .avoid-break {
+          page-break-inside: avoid; /* verhindert Umbruch innerhalb des Elements */
+        }
+        .force-break {
+          page-break-before: always; /* erzwingt Umbruch vor diesem Element */
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <h4 class="mb-3">Kostenvorschlag-/Rechnungs-Builder</h4>
+
+      <div class="mb-3 d-flex gap-2 align-items-center">
+        <div class="search-wrap d-flex gap-2">
+          <input
+            id="search"
+            class="form-control"
+            placeholder="Suche Artikel / Beschreibung..."
+            style="min-width: 360px"
+          />
+          <button id="reset" class="btn btn-outline-secondary">
+            Zurücksetzen
+          </button>
+          <select id="docType" class="form-select" style="width: 200px">
+            <option value="angebot">Kostenvoranschlag</option>
+            <option value="rechnung">Rechnung</option>
+          </select>
+          <button id="exportPdf" class="btn btn-success ms-2">
+            Export als PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="d-flex two-col gap-3">
+        <!-- LINKES PANEEL: Baum / Katalog -->
+        <div class="left-pane col-lg-4 col-md-5 col-sm-12">
+          <div class="mb-2 small-muted">
+            Katalog (Gruppen → Subgruppen → Einträge). Klicke auf das
+            <strong>+</strong> um in das Angebot zu übernehmen.
+          </div>
+
+          <div id="catalogContainer"></div>
+        </div>
+
+        <!-- RECHTES PANEEL: Angebots-/Rechnungsvorlage -->
+        <div class="right-pane col-lg-8 col-md-7 col-sm-12">
+          <div
+            class="d-flex justify-content-between align-items-start mb-3 gap-3"
+          >
+            <div style="flex: 1">
+              <!-- Absender -->
+              <div class="mb-3">
+                <label class="form-label">Absender (Ihr Unternehmen)</label>
+                <textarea id="sender" class="form-control" rows="4">
+Mandici
+Engerthstraße 143
+1020 Wien
+StNr.: 12 404 / 7010
+UID-Nr.: ATU63542438
+Telefon: 0699 16094692
+    </textarea
+                >
+              </div>
+
+              <!-- Empfänger -->
+              <div class="mb-3">
+                <label class="form-label">Empfänger (Kunde)</label>
+                <textarea
+                  id="recipient"
+                  class="form-control"
+                  rows="4"
+                  placeholder="Kundenname&#10;Straße Nr.&#10;PLZ Ort"
+                ></textarea>
+              </div>
+            </div>
+
+            <div style="width: 320px">
+              <div class="mb-2">
+                <label class="form-label small-muted">Dokument</label>
+                <div class="card p-2">
+                  <div class="mb-2">
+                    <label class="form-label">Nummer</label>
+                    <input
+                      id="docNumber"
+                      class="form-control"
+                      placeholder="z. B. 001"
+                    />
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Datum</label>
+                    <input id="docDate" type="date" class="form-control" />
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Zahlungsdetails / Bank</label>
+                    <input
+                      id="paymentDetails"
+                      class="form-control mb-1"
+                      value="AT95 1400 0027 1009 7944"
+                    />
+                    <input
+                      id="paymentBIC"
+                      class="form-control mb-1"
+                      value="BAWAATWW"
+                    />
+                  </div>
+                  <div class="form-check form-switch mt-1">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="showVat"
+                      checked
+                    />
+                    <label class="form-check-label small-muted" for="showVat"
+                      >MwSt anzeigen</label
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Positions-Tabelle -->
+          <div>
+            <table class="table table-sm table-bordered align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 36px">#</th>
+                  <th>Bezeichnung</th>
+                  <th style="width: 90px">Einheit</th>
+                  <th style="width: 110px">Menge</th>
+                  <th style="width: 130px">Einzelpreis</th>
+                  <th style="width: 130px">Betrag</th>
+                  <th style="width: 36px"></th>
+                </tr>
+              </thead>
+              <tbody id="invoiceItems"></tbody>
+            </table>
+          </div>
+
+          <!-- Zusammenfassung -->
+          <div class="row">
+            <div class="col-md-8">
+              <label class="form-label">Einleitungstext / Bemerkungen</label>
+              <textarea id="introText" class="form-control" rows="3">
+Danke, dass Sie sich für mein Angebot entschieden haben. Der Auftrag ist nun erledigt
+und ich berechne für folgende Leistungen:</textarea
+              >
+
+              <label class="form-label mt-2"
+                >Haftungsklausel (editierbar)</label
+              >
+              <textarea id="notes" class="form-control avoid-break" rows="5">
+Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen der angemeldeten freien Gewerbe (Hausbetreuung, Entrümpelung und einfache Schadensbehebung). Tätigkeiten, die einem reglementierten Gewerbe vorbehalten sind – insbesondere Malerei-, Bodenleger- oder Fliesenlegerarbeiten – werden nicht ausgeführt. Die durchgeführten Arbeiten dienen der Instandhaltung, Reinigung und einfachen Reparatur ohne fachgewerbliche Ausführungspflicht. Eine Gewährleistung oder Haftung für Tätigkeiten, die über diesen Leistungsumfang hinausgehen, sowie für allfällige Folgeschäden außerhalb der vereinbarten Arbeiten, wird ausgeschlossen.</textarea
+              >
+            </div>
+            <div class="col-md-4">
+              <table class="table table-sm">
+                <tr>
+                  <td>Zwischensumme</td>
+                  <td class="text-end" id="sumSubtotal">0,00 €</td>
+                </tr>
+                <tr>
+                  <td>Rabatt</td>
+                  <td class="text-end">
+                    <input
+                      id="discount"
+                      class="form-control form-control-sm"
+                      type="number"
+                      step="0.01"
+                      value="0"
+                      style="width: 120px"
+                    />
+                  </td>
+                </tr>
+                <tr id="vatRow">
+                  <td>MwSt (<span id="vatRate">19</span>%)</td>
+                  <td class="text-end" id="sumVat">0,00 €</td>
+                </tr>
+                <tr class="fw-bold">
+                  <td>Gesamt</td>
+                  <td class="text-end" id="sumTotal">0,00 €</td>
+                </tr>
+              </table>
+              <div class="small-muted">Währung: EUR</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bibliotheken -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+      // ---------------------------
+      // EINSTELLUNGEN / KATALOG
+      // ---------------------------
+      // Trage hier händisch deine Gruppen / Subgruppen / Einträge ein.
+      // Struktur: [{ id, title, subgroups: [{ id, title, items: [{ id, title, description, unit, price }] }] }]
+      // Wenn du nur Gruppen ohne Subgruppen willst, lege subgroups: [{ id:'s', title:'', items: [...] }]
+      const catalog = [
+        {
+          id: "g1",
+          title: "Dämmstofftrocknung",
+          subgroups: [
+            {
+              id: "g1-s1",
+              title: "Trocknungsarbeiten im Fußbodenaufbau",
+              items: [
+                {
+                  id: "g1-s1-i1",
+                  title: "Dämmstofftrocknung 0-24m²",
+                  description: "",
+                  unit: "PA",
+                  price: 679.1,
+                },
+                {
+                  id: "g1-s1-i2",
+                  title: "Dämmstofftrocknung 25-49m²",
+                  description: "",
+                  unit: "m²",
+                  price: 28.7,
+                },
+                {
+                  id: "g1-s1-i3",
+                  title: "Dämmstofftrocknung 50-69m²",
+                  description: "",
+                  unit: "m²",
+                  price: 27.4,
+                },
+                {
+                  id: "g1-s1-i4",
+                  title: "Dämmstofftrocknung 70-109m²",
+                  description: "",
+                  unit: "m²",
+                  price: 24.8,
+                },
+                {
+                  id: "g1-s1-i5",
+                  title: "Dämmstofftrocknung ab 110m²",
+                  description: "",
+                  unit: "m²",
+                  price: "VBmSV",
+                },
+              ],
+            },
+            {
+              id: "g1-s2",
+              title: "Verrechenbare Zusatzleistungen",
+              items: [
+                {
+                  id: "g1-s2-i1",
+                  title: "Zerstörungsfreie Fliesenabhebung (bis 10 Stück)",
+                  description:
+                    "Zerstörungsfreie Entfernung von Wand- und/oder Bodenfliesen aller Art (keramische Fliesen, Naturstein, etc.)\nJe Stück (bis max. 10 pro Wohneinheit) Netto/EUR",
+                  unit: "ST",
+                  price: 38.6,
+                },
+                {
+                  id: "g1-s2-i2",
+                  title: "Fliesen Wiederverlegung (bis 10 Stück)",
+                  description:
+                    "Wiederverlegung inkl. Nebenarbeiten Je Stück (bis max. 10 pro Wohneinheit) Netto/EUR",
+                  unit: "ST",
+                  price: 45.5,
+                },
+                {
+                  id: "g1-s2-i3",
+                  title: "Zerstörungsfreie Fliesenabhebung (ab 11 Stk)",
+                  description:
+                    "Zerstörungsfreie Entfernung von Wand- und/oder Bodenfliesen aller Art (keramische Fliesen, Naturstein, etc.) und Wiederverlegung; inkl. Nebenarbeiten.\nAb 11 Stück Netto/EUR",
+                  unit: "ST",
+                  price: "VBmSV",
+                },
+                {
+                  id: "g1-s2-i4",
+                  title:
+                    "Einleger mit allen Vor und Nebenarbeiten samt Fahrtkosten bis 4 Stück",
+                  description: "",
+                  unit: "ST",
+                  price: 109.1,
+                },
+                {
+                  id: "g1-s2-i5",
+                  title:
+                    "Einleger mit allen Vor und Nebenarbeiten samt Fahrtkosten von 5 bis 9 Stück",
+                  description: "",
+                  unit: "ST",
+                  price: 92.5,
+                },
+                {
+                  id: "g1-s2-i6",
+                  title: "Heizungsortung",
+                  description:
+                    "Leistungsumfang: Ab-/Anfahrt, inkl. Geräteeinsatz\nEinsatz vor Ort bis 3 Std. PA Netto/EUR",
+                  unit: "PA",
+                  price: 212.7,
+                },
+                {
+                  id: "g1-s2-i7",
+                  title:
+                    "Abschottung aus Folie ab 25m² Bodenfläche 3-10m² Folie",
+                  description: "",
+                  unit: "PA",
+                  price: 70.1,
+                },
+                {
+                  id: "g1-s2-i8",
+                  title:
+                    "Wasserabscheider Vakuumtrocknung Bodentrocknungsfläche ab 25m²",
+                  description: "",
+                  unit: "m²",
+                  price: 4.0,
+                },
+                {
+                  id: "g1-s2-i9",
+                  title: "Hepafiltereinsatz bis 25m²",
+                  description:
+                    "Darüber Rücksprache mit SV. Anwendung nur in ständig bewohnten Räumen bei Trocknung im Unterdruckverfahren",
+                  unit: "PA",
+                  price: 91.7,
+                },
+                {
+                  id: "g1-s2-i10",
+                  title: "Hepafiltereinsatz bei Dämmstofftrocknung",
+                  description:
+                    "Zuschlag je Leistungsposition Dämmstofftrocknung ab 25m² Bodenfläche. Kommen ausschließlich zum Einsatz, wenn ein Abführen der Regenationsluft nicht möglich ist.",
+                  unit: "%",
+                  price: 7.0,
+                },
+                {
+                  id: "g1-s2-i11",
+                  title: "Estrich Desinfektion bei Fäkalschaden bis 25m²",
+                  description: "Biozidspülung",
+                  unit: "PA",
+                  price: 293.6,
+                },
+                {
+                  id: "g1-s2-i12",
+                  title: "Estrich Desinfektion bei Fäkalschaden bis 50m²",
+                  description: "Biozidspülung",
+                  unit: "PA",
+                  price: 587.1,
+                },
+                {
+                  id: "g1-s2-i13",
+                  title: "Estrich Desinfektion bei Fäkalschaden bis 100m²",
+                  description: "Biozidspülung",
+                  unit: "PA",
+                  price: 1157.2,
+                },
+                {
+                  id: "g1-s2-i14",
+                  title: "Estrich Desinfektion bei Fäkalschaden ab 100m²",
+                  description: "Biozidspülung",
+                  unit: "m²",
+                  price: 11.4,
+                },
+                {
+                  id: "g1-s2-i15",
+                  title: "Oberflächendesinfektion bei Fäkalschaden bis 40m²",
+                  description: "Biozidbehandlung",
+                  unit: "PA",
+                  price: 259.6,
+                },
+                {
+                  id: "g1-s2-i16",
+                  title: "Oberflächendesinfektion bei Fäkalschaden ab 40m²",
+                  description: "Biozidbehandlung",
+                  unit: "m²",
+                  price: 6.3,
+                },
+                {
+                  id: "g1-s2-i17",
+                  title:
+                    "Weitere hinausgehende Leistungen (z.B. Heizstabtrocknung)",
+                  description:
+                    "Weitere darüber hinausgehende Leistungen sind mit dem SV zu vereinbaren (z.B. Heizstabtrocknung). Auftragsdetail siehe Trocknungspauschalen über Trocknungs- und Leckortungsarbeiten",
+                  unit: "VE",
+                  price: "VBmSV",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g2",
+          title: "Raumtrocknung",
+          subgroups: [
+            {
+              id: "g2-s1",
+              title: "Raumtrocknung",
+              items: [
+                {
+                  id: "g2-s1-i1",
+                  title: "Raumtrocknung 1. Raum (bis 25m²) (pro Wohneinheit)",
+                  description: "",
+                  unit: "PA",
+                  price: 419.1,
+                },
+                {
+                  id: "g2-s1-i2",
+                  title: "Raumtrocknung weiterer Raum (bis 25m²)",
+                  description: "",
+                  unit: "PA",
+                  price: 280.2,
+                },
+                {
+                  id: "g2-s1-i3",
+                  title: "Raumtrocknung (Räume über 25m²)",
+                  description:
+                    "Werden Räume über 25m² Fläche getrocknet, so wird der angeführte Einheitspreis prozentuell im Verhältnis zu 25m² Fläche erhöht.",
+                  unit: "%",
+                  price: "",
+                },
+                {
+                  id: "g2-s1-i4",
+                  title: "Heizstabtrocknung Wanddicke von 25 - 50 cm",
+                  description: "",
+                  unit: "m²",
+                  price: 122.6,
+                },
+                {
+                  id: "g2-s1-i5",
+                  title: "Heizstabtrocknung Wanddicke von 51 - 100 cm",
+                  description: "",
+                  unit: "m²",
+                  price: 153.0,
+                },
+                {
+                  id: "g2-s1-i6",
+                  title: "Wandtrocknung - Infrarotplatten bis 3 m²",
+                  description: "",
+                  unit: "PA",
+                  price: 198.8,
+                },
+                {
+                  id: "g2-s1-i7",
+                  title:
+                    "Abschottung aus Folie ab 25m² Bodenfläche 3-10m² Folie",
+                  description: "",
+                  unit: "PA",
+                  price: 70.1,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g3",
+          title: "Energiekosten",
+          subgroups: [
+            {
+              id: "g3-s1",
+              title: "Energiekosten",
+              items: [
+                {
+                  id: "g3-s1-i1",
+                  title: "Energiekosten bei Trocknungsarbeiten",
+                  description: "",
+                  unit: "kWh",
+                  price: "",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g4",
+          title: "BODENBELÄGE",
+          subgroups: [
+            {
+              id: "g4-s1",
+              title: "Kleinflächen",
+              items: [
+                {
+                  id: "g4-s1-i1",
+                  title: "Kleinflächenpauschale bis 5,0m² PVC/Linoleum/Teppich",
+                  description:
+                    'Material: "STANDARD / mittlere Qualität" - PVC / Linoleum / Teppichbelege abbrechen, entsorgen, Untergrund vorbereiten, liefern und verlegen; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung',
+                  unit: "PA",
+                  price: 493.3,
+                },
+                {
+                  id: "g4-s1-i2",
+                  title:
+                    "Kleinflächenpauschale 5,1m² bis 10,0m² PVC/Linoleum/Teppich",
+                  description:
+                    'Material: "STANDARD / mittlere Qualität" - PVC / Linoleum / Teppichbelege abbrechen, entsorgen, Untergrund vorbereiten, liefern und verlegen; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung',
+                  unit: "PA",
+                  price: 802.4,
+                },
+                {
+                  id: "g4-s1-i3",
+                  title: "Kleinflächenpauschale bis 5,0m² Vinyl/Fertigparkett",
+                  description:
+                    'Material: "STANDARD / mittlere Qualität" - VINYL / FERTIGPARKETT - abbrechen, entsorgen, Untergrund vorbereiten, liefern und schwimmend verlegen; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung',
+                  unit: "PA",
+                  price: 645,
+                },
+                {
+                  id: "g4-s1-i4",
+                  title: "Kleinflächenpauschale bis 5,0m² Laminatboden",
+                  description:
+                    'Material: "STANDARD / mittlere Qualität" - LAMINATBODEN - abbrechen, entsorgen, Untergrund vorbereiten, liefern und schwimmend verlegen; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung',
+                  unit: "PA",
+                  price: 470,
+                },
+                {
+                  id: "g4-s1-i5",
+                  title:
+                    "Kleinflächenpauschale 5,1m² bis 10,0m² Vinyl/Fertigparkett",
+                  description:
+                    'Material: "STANDARD / mittlere Qualität" - VINYL / FERTIGPARKETT - abbrechen, entsorgen, Untergrund vorbereiten, liefern und schwimmend verlegen; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung',
+                  unit: "PA",
+                  price: 919.9,
+                },
+                {
+                  id: "g4-s1-i6",
+                  title: "Kleinflächenpauschale 5,1m² bis 10,0m² Laminatboden",
+                  description:
+                    'Material: "STANDARD / mittlere Qualität" - LAMINATBODEN - abbrechen, entsorgen, Untergrund vorbereiten, liefern und schwimmend verlegen; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung',
+                  unit: "PA",
+                  price: 797,
+                },
+                {
+                  id: "g4-s1-i7",
+                  title: "Kleinflächenpauschale bis 5,0m² Massivholzboden",
+                  description:
+                    'Material: "STANDARD / mittlere Qualität" - FERTIGPARKETT (verklebt) / MASSIVHOLZBODEN - abbrechen, entsorgen, Untergrund vorbereiten, liefern und verlegen, schleifen, kitten und 2x versiegeln; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung',
+                  unit: "PA",
+                  price: 872.5,
+                },
+                {
+                  id: "g4-s1-i8",
+                  title:
+                    "Kleinflächenpauschale 5,1m² bis 10,0m² Massivholzboden",
+                  description:
+                    'Material: "STANDARD / mittlere Qualität" - FERTIGPARKETT (verklebt) / MASSIVHOLZBODEN - abbrechen, entsorgen, Untergrund vorbereiten, liefern und verlegen, schleifen, kitten und 2x versiegeln; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung',
+                  unit: "PA",
+                  price: 1225.2,
+                },
+                {
+                  id: "g4-s1-i9",
+                  title:
+                    "Kleinflächenpauschale bis 5,0m² Exklusiv Massivholzboden",
+                  description:
+                    'Material: "EXKLUSIV" - MASSIVHOLZBODEN - abbrechen, entsorgen, Untergrund vorbereiten, liefern und verlegen, schleifen, kitten und 2x versiegeln; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung; Vereinbarung mit SV',
+                  unit: "PA",
+                  price: "VBmSV",
+                },
+                {
+                  id: "g4-s1-i10",
+                  title:
+                    "Kleinflächenpauschale 5,1m² bis 10,0m² Exklusiv Massivholzboden",
+                  description:
+                    'Material: "EXKLUSIV" - MASSIVHOLZBODEN - abbrechen, entsorgen, Untergrund vorbereiten, liefern und verlegen, schleifen, kitten und 2x versiegeln; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile; inkl. Fahrtkosten bzw. Baustelleneinrichtung; Vereinbarung mit SV',
+                  unit: "PA",
+                  price: "VBmSV",
+                },
+              ],
+            },
+            {
+              id: "g4-s2",
+              title: "Verlegearbeiten",
+              items: [
+                {
+                  id: "g4-s2-i1",
+                  title:
+                    "Lose u. schwimmend verlegte Holz-/Bodenbeläge abbrechen und entsorgen",
+                  description: "",
+                  unit: "m²",
+                  price: 13.9,
+                },
+                {
+                  id: "g4-s2-i2",
+                  title:
+                    "Verklebte/genagelte Holz-/Bodenbeläge abbrechen und entsorgen",
+                  description: "",
+                  unit: "m²",
+                  price: 18.6,
+                },
+                {
+                  id: "g4-s2-i3",
+                  title: "Untergrund (Estrich oder ähnliches) vorbereiten",
+                  description: "",
+                  unit: "m²",
+                  price: 9.7,
+                },
+                {
+                  id: "g4-s2-i4",
+                  title: "Nivellieren (Aufschlag zu 050203)",
+                  description: "",
+                  unit: "%",
+                  price: 30,
+                },
+                {
+                  id: "g4-s2-i5",
+                  title:
+                    "PVC / Linoleum / Teppich - Beläge verlegen (ohne Material)",
+                  description: "",
+                  unit: "m²",
+                  price: 23,
+                },
+                {
+                  id: "g4-s2-i6",
+                  title: "Aufschlag zu 050204",
+                  description: "",
+                  unit: "%",
+                  price: 50,
+                },
+                {
+                  id: "g4-s2-i7",
+                  title:
+                    "Laminat / Fertigparkett (schwimmend) verlegen (ohne Material)",
+                  description: "",
+                  unit: "m²",
+                  price: 30.3,
+                },
+                {
+                  id: "g4-s2-i8",
+                  title: "Verklebte Holz-/Bodenbeläge verlegen (ohne Material)",
+                  description: "",
+                  unit: "m²",
+                  price: 42.5,
+                },
+                {
+                  id: "g4-s2-i9",
+                  title: "Partieller Austausch von Massivholzböden",
+                  description: "",
+                  unit: "m²",
+                  price: 134,
+                },
+              ],
+            },
+            {
+              id: "g4-s3",
+              title: "Bodenversiegelung inkl. Material",
+              items: [
+                {
+                  id: "g4-s3-i1",
+                  title:
+                    "Parkett schleifen, kitten + 2x versiegeln bis 15,0m² (Pauschale)",
+                  description:
+                    "Parkett schleifen, kitten + 2x versiegeln bis 15,0m²; inkl. Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "PA",
+                  price: 666,
+                },
+                {
+                  id: "g4-s3-i2",
+                  title:
+                    "Parkett schleifen, kitten + 2x versiegeln von 15,1m² bis 30,0m²",
+                  description:
+                    "inkl. Material; ohne Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "m²",
+                  price: 41.1,
+                },
+                {
+                  id: "g4-s3-i3",
+                  title: "Parkett schleifen, kitten + 2x versiegeln ab 30,1m²",
+                  description:
+                    "inkl. Material; ohne Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "m²",
+                  price: 35,
+                },
+                {
+                  id: "g4-s3-i4",
+                  title: "Sesselleisten, Bestand de- & wiedermontieren",
+                  description:
+                    "Parkett schleifen, kitten + 2x versiegeln ab 30,1m²; inkl. Material; ohne Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "m",
+                  price: 7.2,
+                },
+                {
+                  id: "g4-s3-i5",
+                  title:
+                    "Sesselleisten, abbrechen und entsorgen, liefern und neu montieren",
+                  description:
+                    "inkl. Material; ohne Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "m",
+                  price: 15.3,
+                },
+                {
+                  id: "g4-s3-i6",
+                  title:
+                    "Aufzahlung für das Entfernen von verklebten Boden mit verstärkten Klebern",
+                  description:
+                    "nur mit Absprache mit SV, Verrechnung nach Stunden.",
+                  unit: "PA",
+                  price: "VBmSV",
+                },
+              ],
+            },
+            {
+              id: "g4-s4",
+              title: "Material",
+              items: [
+                // MATERIAL STANDARD
+                {
+                  id: "g4-s4-i1",
+                  title: "Material Standard - PVC",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 36.4,
+                },
+                {
+                  id: "g4-s4-i2",
+                  title: "Material Standard - Linoleum",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 34.9,
+                },
+                {
+                  id: "g4-s4-i3",
+                  title: "Material Standard - Vinyl",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 45.2,
+                },
+                {
+                  id: "g4-s4-i4",
+                  title: "Material Standard - Teppich",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 41.3,
+                },
+                {
+                  id: "g4-s4-i5",
+                  title: "Material Standard - Laminat",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 27.6,
+                },
+                {
+                  id: "g4-s4-i6",
+                  title: "Material Standard - Fertigparkett",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 49.7,
+                },
+                {
+                  id: "g4-s4-i7",
+                  title: "Material Standard - Massivholzböden",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: "LP",
+                },
+
+                // MATERIAL MITTLERE QUALITÄT
+                {
+                  id: "g4-s4-i8",
+                  title: "Material Mittlere Qualität - PVC",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 40,
+                },
+                {
+                  id: "g4-s4-i9",
+                  title: "Material Mittlere Qualität - Linoleum",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 38.4,
+                },
+                {
+                  id: "g4-s4-i10",
+                  title: "Material Mittlere Qualität - Vinyl",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 49.7,
+                },
+                {
+                  id: "g4-s4-i11",
+                  title: "Material Mittlere Qualität - Teppich",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 45.6,
+                },
+                {
+                  id: "g4-s4-i12",
+                  title: "Material Mittlere Qualität - Laminat",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 30.4,
+                },
+                {
+                  id: "g4-s4-i13",
+                  title: "Material Mittlere Qualität - Fertigparkett",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: 55.1,
+                },
+                {
+                  id: "g4-s4-i14",
+                  title: "Material Mittlere Qualität - Massivholzböden",
+                  description:
+                    "Liefern inkl. Verschnitt, erforderlicher Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und erforderlicher An- und Abschlussprofile",
+                  unit: "m²",
+                  price: "LP",
+                },
+
+                // MATERIAL EXKLUSIV
+                {
+                  id: "g4-s4-i15",
+                  title: "Material Exklusiv - PVC",
+                  description:
+                    "Liefern inkl. Verschnitt, Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und An- und Abschlussprofile, Listenpreis",
+                  unit: "m²",
+                  price: "LP",
+                },
+                {
+                  id: "g4-s4-i16",
+                  title: "Material Exklusiv - Linoleum",
+                  description:
+                    "Liefern inkl. Verschnitt, Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und An- und Abschlussprofile, Listenpreis",
+                  unit: "m²",
+                  price: "LP",
+                },
+                {
+                  id: "g4-s4-i17",
+                  title: "Material Exklusiv - Vinyl",
+                  description:
+                    "Liefern inkl. Verschnitt, Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und An- und Abschlussprofile, Listenpreis",
+                  unit: "m²",
+                  price: "LP",
+                },
+                {
+                  id: "g4-s4-i18",
+                  title: "Material Exklusiv - Teppich",
+                  description:
+                    "Liefern inkl. Verschnitt, Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und An- und Abschlussprofile, Listenpreis",
+                  unit: "m²",
+                  price: "LP",
+                },
+                {
+                  id: "g4-s4-i19",
+                  title: "Material Exklusiv - Laminat",
+                  description:
+                    "Liefern inkl. Verschnitt, Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und An- und Abschlussprofile, Listenpreis",
+                  unit: "m²",
+                  price: "LP",
+                },
+                {
+                  id: "g4-s4-i20",
+                  title: "Material Exklusiv - Fertigparkett",
+                  description:
+                    "Liefern inkl. Verschnitt, Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und An- und Abschlussprofile, Listenpreis",
+                  unit: "m²",
+                  price: "LP",
+                },
+                {
+                  id: "g4-s4-i21",
+                  title: "Material Exklusiv - Massivholzböden",
+                  description:
+                    "Liefern inkl. Verschnitt, Kleber, Klein- und Verbrauchsmaterial, Sockelleisten und An- und Abschlussprofile, Listenpreis",
+                  unit: "m²",
+                  price: "LP",
+                },
+              ],
+            },
+            {
+              id: "g4-s5",
+              title: "Nebenarbeiten",
+              items: [
+                {
+                  id: "g4-s5-i1",
+                  title:
+                    "Hohlkehle - Hochzug 10x10 anfertigen inkl. verlegen und verschweißen inkl. Innen- und Außenecken mit der Bahnware",
+                  description: "",
+                  unit: "lfm",
+                  price: 22.8,
+                },
+                {
+                  id: "g4-s5-i2",
+                  title: "Reinigung Teppichböden verlegt bzw. verklebt",
+                  description: "",
+                  unit: "m²",
+                  price: 10.4,
+                },
+                {
+                  id: "g4-s5-i3",
+                  title:
+                    "Reinigen Vorlegeteppich - aufgelegter Teppich handgeknüpft inkl. An- und Abtransport",
+                  description: "",
+                  unit: "m²",
+                  price: 52.1,
+                },
+                {
+                  id: "g4-s5-i4",
+                  title:
+                    "Reinigen Vorlegeteppich - aufgelegter Teppich maschinell gefertigt inkl. An- und Abtransport",
+                  description: "",
+                  unit: "m²",
+                  price: 34.7,
+                },
+              ],
+            },
+            {
+              id: "g4-s6",
+              title: "Professionistenpreise",
+              items: [
+                {
+                  id: "g4-s6-i1",
+                  title: "Facharbeiter",
+                  description: "",
+                  unit: "h",
+                  price: 68,
+                },
+                {
+                  id: "g4-s6-i2",
+                  title: "Helfer",
+                  description: "",
+                  unit: "h",
+                  price: 56,
+                },
+                {
+                  id: "g4-s6-i3",
+                  title: "Partiestunde",
+                  description: "",
+                  unit: "PSt",
+                  price: 124,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g5",
+          title: "Malerei und Tapezierung",
+          subgroups: [
+            {
+              id: "g5-s1",
+              title: "Kleinflächen",
+              items: [
+                {
+                  id: "g5-s1-i1",
+                  title:
+                    "Kleinflächenpauschale bis 1,0m² Gipskartonöffnungen verschließen",
+                  description:
+                    "Kleinflächenpauschale bis 1m², Gipskartonöffnungen verschließen und maler- /fliesenlegerfertig herstellen inkl. Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "PA",
+                  price: 177.0,
+                },
+              ],
+            },
+            {
+              id: "g5-s2",
+              title: "Kleinflächen - Malerei",
+              items: [
+                {
+                  id: "g5-s2-i1",
+                  title:
+                    "Kleinflächenpauschale bis 15,0m² zu malende Fläche (pro Wohneinheit)",
+                  description:
+                    "Beinhaltet sämtliche notwendigen Untergrund- und Abdeckarbeiten inkl. Ein- und Mehrfärbigkeit; inkl. Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "PA",
+                  price: 425.4,
+                },
+                {
+                  id: "g5-s2-i2",
+                  title:
+                    "Kleinflächenpauschale von 15,1m² bis 30,0m² zu malende Fläche (pro Wohneinheit)",
+                  description:
+                    "Beinhaltet sämtliche notwendigen Untergrund- und Abdeckarbeiten inkl. Ein- und Mehrfärbigkeit; inkl. Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "PA",
+                  price: 595.9,
+                },
+              ],
+            },
+            {
+              id: "g5-s3",
+              title: "Malerei",
+              items: [
+                {
+                  id: "g5-s3-i1",
+                  title:
+                    "Ab 30,1m² zu malende Fläche pro Wohneinheit (30% Untergrundarbeiten)",
+                  description:
+                    "Decken- und Wandflächenanstrich, Dispersion, Leim, Mineral (ein- oder mehrfärbig). Alle Untergrundarbeiten  (abscheren, isolieren, Tiefengrund, spachteln, Fliesarmierung, Acrylfugen) bis 30% der zu malenden Fläche: inkl. Abdeckarbeiten; inkl. Entsorgung",
+                  unit: "m²",
+                  price: 13.6,
+                },
+                {
+                  id: "g5-s3-i2",
+                  title:
+                    "Ab 30,1m² zu malende Fläche pro Wohneinheit (60% Untergrundarbeiten)",
+                  description:
+                    "Decken- und Wandflächenanstrich, Dispersion, Leim, Mineral (ein- oder mehrfärbig). Alle Untergrundarbeiten  (abscheren, isolieren, Tiefengrund, spachteln, Fliesarmierung, Acrylfugen) bis 60% der zu malenden Fläche: inkl. Abdeckarbeiten; inkl. Entsorgung",
+                  unit: "m²",
+                  price: 15.2,
+                },
+                {
+                  id: "g5-s3-i3",
+                  title:
+                    "Ab 30,1m² zu malende Fläche pro Wohneinheit (100% Untergrundarbeiten)",
+                  description:
+                    "Decken- und Wandflächenanstrich, Dispersion, Leim, Mineral (ein- oder mehrfärbig). Alle Untergrundarbeiten  (abscheren, isolieren, Tiefengrund, spachteln, Fliesarmierung, Acrylfugen) bis 100% der zu malenden Fläche: inkl. Abdeckarbeiten; inkl. Entsorgung",
+                  unit: "m²",
+                  price: 19.0,
+                },
+                {
+                  id: "g5-s3-i4",
+                  title:
+                    "Ab 100,1m² zu malende Fläche pro Wohneinheit (60% Untergrundarbeiten)",
+                  description:
+                    "Decken- und Wandflächenanstrich, Dispersion, Leim, Mineral (ein- oder mehrfärbig). Untergrundarbeiten  (abscheren, isolieren, Tiefengrund, spachteln, Fliesarmierung, Acrylfugen) bis 60% der zu malenden Fläche: inkl. Abdeckarbeiten; inkl. Entsorgung",
+                  unit: "m²",
+                  price: 12.6,
+                },
+                {
+                  id: "g5-s3-i5",
+                  title:
+                    "Ab 200,1m² zu malende Fläche pro Wohneinheit (60% Untergrundarbeiten)",
+                  description:
+                    "Decken- und Wandflächenanstrich, Dispersion, Leim, Mineral (ein- oder mehrfärbig). Untergrundarbeiten  (abscheren, isolieren, Tiefengrund, spachteln, Fliesarmierung, Acrylfugen) bis 60% der zu malenden Fläche: inkl. Abdeckarbeiten; inkl. Entsorgung",
+                  unit: "m²",
+                  price: 10.0,
+                },
+                {
+                  id: "g5-s3-i6",
+                  title:
+                    "25% Aufschlag Latex, Silikat, Nikotinanstrich á m²  der zu malenden Fläche",
+                  description:
+                    "25% Aufschlag zu Leistungspositionen 060301, 060302 & 060303",
+                  unit: "%",
+                  price: 25.0,
+                },
+              ],
+            },
+            {
+              id: "g5-s4",
+              title: "Kleinflächen - Tapezierung",
+              items: [
+                {
+                  id: "g5-s4-i1",
+                  title:
+                    "Kleinflächenpauschale bis 20,0m² zu tapezierende Fläche (pro Wohneinheit)",
+                  description:
+                    "Beinhaltet ablösen, entsorgen, sämtliche Untergrund- und Abdeckarbeiten inkl. Tapeten liefern; inkl. Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "PA",
+                  price: 812.4,
+                },
+                {
+                  id: "g5-s4-i2",
+                  title:
+                    "Kleinflächenpauschale bis 20,0m² Raufasertapezierung inkl. Malerei (pro Wohneinheit)",
+                  description:
+                    "Beinhaltet ablösen, entsorgen, Untergrund- und Abdeckarbeiten inkl. Tapeten liefern und Überstreichen; inkl. Fahrtkosten bzw. Baustelleneinrichtung",
+                  unit: "PA",
+                  price: 665.0,
+                },
+              ],
+            },
+            {
+              id: "g5-s5",
+              title: "Tapezierung",
+              items: [
+                {
+                  id: "g5-s5-i1",
+                  title:
+                    "Ab 20,1m² zu tapezierende Fläche pro Wohneinheit (ausgenommen Raufasertapete)",
+                  description:
+                    "Decken- und Wandflächen, Tapeten ablösen und entsorgen, Untergrundarbeiten (abscheren, isolieren, Tiefengrund, spachteln, Acrylfugen, Makulatur), tapezieren; inkl. Abdeckarbeiten; ohne Tapetenmaterial",
+                  unit: "m²",
+                  price: 24.6,
+                },
+                {
+                  id: "g5-s5-i2",
+                  title: "Ab 20,1m² Raufasertapezierung pro Wohneinheit",
+                  description:
+                    "Decken- und Wandflächen, Raufasertapeten ablösen und entsorgen, Untergrundarbeiten, tapezieren; inkl. Abdeckarbeiten; inkl. Überstreichen sowie Materialanteil",
+                  unit: "m²",
+                  price: 37.5,
+                },
+              ],
+            },
+            {
+              id: "g5-s6",
+              title: "Material",
+              items: [
+                {
+                  id: "g5-s6-i1",
+                  title: "Material Standard",
+                  description:
+                    "Liefern inkl. Verschnitt sowie Klein- und Verbrauchsmaterial",
+                  unit: "m²",
+                  price: 6.8,
+                },
+                {
+                  id: "g5-s6-i2",
+                  title: "Material Mittlere Qualität",
+                  description:
+                    "Liefern inkl. Verschnitt sowie Klein- und Verbrauchsmaterial",
+                  unit: "m²",
+                  price: 9.6,
+                },
+                {
+                  id: "g5-s6-i3",
+                  title: "Material Exklusiv",
+                  description:
+                    "Liefern inkl. Verschnitt sowie Klein- und Verbrauchsmaterial; Listenpreis",
+                  unit: "m²",
+                  price: "LP",
+                },
+              ],
+            },
+            {
+              id: "g5-s7",
+              title: "Nebenarbeiten",
+              items: [
+                {
+                  id: "g5-s7-i1",
+                  title:
+                    "Schimmelpilzbehandlung Raumpauschale für Malerarbeiten bis 0,5m²",
+                  description:
+                    "Verrechnung nur nach Absprache mit Sachverständigen",
+                  unit: "PA",
+                  price: 63.8,
+                },
+                {
+                  id: "g5-s7-i2",
+                  title: "Holztürblätter glatt; lackieren bis 2 m²",
+                  description:
+                    "ohne Profil, beidseitig - Anstrich auf Holz, Anstrich herstellen und zwar einschließlich der dazugehörenden Vorarbeiten wie: Schleifen, Grundieren, Vorkitten, Spachtelung und Zwischenschliff nach Erfordernis, incl. De- u. Remontage einschießlich der Beschlägeinkl. Überstreichen sowie Materialanteil",
+                  unit: "STK",
+                  price: 184.6,
+                },
+                {
+                  id: "g5-s7-i3",
+                  title: "Holztürblätter glatt; lackieren ab 2 m²",
+                  description:
+                    "ohne Profil, beidseitig - Anstrich auf Holz, Anstrich herstellen und zwar einschließlich der dazugehörenden Vorarbeiten wie: Schleifen, Grundieren, Vorkitten, Spachtelung und Zwischenschliff nach Erfordernis, incl. De- u. Remontage einschießlich der Beschlägeinkl. Überstreichen sowie Materialanteil",
+                  unit: "STK",
+                  price: 259.6,
+                },
+                {
+                  id: "g5-s7-i4",
+                  title: "Türstöcke aus Holz lackieren",
+                  description:
+                    "Anstrich auf Holz, Anstrich herstellen und zwar einschließlich der dazugehörenden Vorarbeiten wie: Schleifen, Grundieren, Vorkitten, Spachtelung und Zwischenschliff nach Erfordernis, incl. De- u. Remontage einschießlich der Beschläge",
+                  unit: "STK",
+                  price: 144.2,
+                },
+                {
+                  id: "g5-s7-i5",
+                  title: "Metalltürblätter glatt; lackieren bis 2 m²",
+                  description:
+                    "Anstrich auf Metall; beidseitig, Anstrich herstellen und zwar einschließlich der dazugehörenden Vorarbeiten wie: Entrosten, Schleifen, Grundieren, Vorkitten, Spachtelung und Zwischenschliff nach Erfordernis, incl. De- u. Remontage einschießlich der Beschläge",
+                  unit: "STK",
+                  price: 138.4,
+                },
+                {
+                  id: "g5-s7-i6",
+                  title: "Metalltürblätter glatt; lackieren ab 2 m²",
+                  description:
+                    "Anstrich auf Metall; beidseitig, Anstrich herstellen und zwar einschließlich der dazugehörenden Vorarbeiten wie: Entrosten, Schleifen, Grundieren, Vorkitten, Spachtelung und Zwischenschliff nach Erfordernis, incl. De- u. Remontage einschießlich der Beschläge",
+                  unit: "STK",
+                  price: 236.5,
+                },
+                {
+                  id: "g5-s7-i7",
+                  title: "Stahlzarge lackieren",
+                  description:
+                    "Anstrich auf Metall, Anstrich herstellen und zwar einschließlich der dazugehörenden Vorarbeiten wie: Entrosten, Schleifen, Grundieren, Vorkitten, Spachtelung und Zwischenschliff nach Erfordernis, incl. De- u. Remontage einschießlich der Beschläge",
+                  unit: "STK",
+                  price: 104.0,
+                },
+                {
+                  id: "g5-s7-i8",
+                  title: "Holzfenster ohne Sprossen bis 2 m² lasieren",
+                  description:
+                    "Anstrich herstellen und zwar einschließlich der dazugehörenden Vorarbeiten wie: Schleifen, Grundieren, Vorkitten, Spachtelung und Zwischenschliff nach Erfordernis, incl. De- u. Remontage einschießlich der Beschläge",
+                  unit: "STK",
+                  price: 230.8,
+                },
+                {
+                  id: "g5-s7-i9",
+                  title: "Flachheizkörper lackieren",
+                  description:
+                    "Flachheizkörper im demontierten Zustand lackieren! Heizkörper lackieren 2-fache Lackierung von Heizkörpern im Spritzverfahren einschließlich der dazu notwendigen Vorarbeiten wie: schleifen, kitten und grundieren",
+                  unit: "STK",
+                  price: 173.1,
+                },
+                {
+                  id: "g5-s7-i10",
+                  title: "Holzfassadenanstrich bis 100m²",
+                  description:
+                    "Lose Teile abbürsten, reinigen, Fläche anschleifen, 2x mit Holzlasur streichen",
+                  unit: "STK",
+                  price: 36.1,
+                },
+                {
+                  id: "g5-s7-i11",
+                  title: "Holzfassadenanstrich ab 100,1m²",
+                  description:
+                    "Lose Teile abbürsten, reinigen, Fläche anschleifen, 2x mit Holzlasur streichen",
+                  unit: "m²",
+                  price: "VBmSV",
+                },
+              ],
+            },
+            {
+              id: "g5-s8",
+              title: "Gerüstung",
+              items: [
+                {
+                  id: "g5-s8-i1",
+                  title:
+                    "Roll- bzw. Standardgerüst bis 5m Arbeitshöhe (exkl. Fahrtkosten bzw. Baustelleneinrichtung)",
+                  description: "",
+                  unit: "PA",
+                  price: 225.0,
+                },
+              ],
+            },
+            {
+              id: "g5-s9",
+              title: "Professionistenpreise",
+              items: [
+                {
+                  id: "g5-s9-i1",
+                  title: "Facharbeiter",
+                  description: "",
+                  unit: "h",
+                  price: 68.0,
+                },
+                {
+                  id: "g5-s9-i2",
+                  title: "Helfer",
+                  description: "",
+                  unit: "h",
+                  price: 56.0,
+                },
+                {
+                  id: "g5-s9-i3",
+                  title: "Partiestunde",
+                  description: "",
+                  unit: "PSt",
+                  price: 124.0,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g6",
+          title: "Fliesenleger",
+          subgroups: [
+            {
+              id: "g6-s1",
+              title: "Kleinflächen",
+              items: [
+                {
+                  id: "g6-s1-i1",
+                  title:
+                    "Kleinflächenpauschale bis 1,0m² Fliesen, Material: Standard / mittlere Qualität",
+                  description: `Material: "Standard / mittlere Qualität" - Fliesen abschlagen, entsorgen, Untergrund vorbereiten, falls erforderlich Verschliessen von
+                  Stemmschlitze, ausgleichen. inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
+                  sowie Fahrtkosten bzw. Baustelleneinrichtung`,
+                  unit: "PA",
+                  price: 379.0,
+                },
+                {
+                  id: "g6-s1-i2",
+                  title:
+                    "Kleinflächenpauschale von 1,1m² bis 3,0m² Fliesen, Material: Standard / mittlere Qualität",
+                  description: `Material: "Standard / mittlere Qualität" - Fliesen abschlagen, entsorgen, Untergrund vorbereiten, falls erforderlich Verschliessen von
+                  Stemmschlitze, ausgleichen, inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
+                  inkl. Reinigungskosten sowie Fahrtkosten bzw. Baustelleneinrichtung`,
+                  unit: "PA",
+                  price: 690.0,
+                },
+                {
+                  id: "g6-s1-i3",
+                  title:
+                    "Kleinflächenpauschale von 3,1m² bis 6,0m² Fliesen, Material: Standard / mittlere Qualität",
+                  description: `Material: "Standard / mittlere Qualität" - Fliesen abschlagen, entsorgen, Untergrund vorbereiten, falls erforderlich Verschliessen von
+                  Stemmschlitze, ausgleichen, inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
+                  inkl. Reinigungskosten sowie Fahrtkosten bzw. Baustelleneinrichtung`,
+                  unit: "PA",
+                  price: 939.0,
+                },
+                {
+                  id: "g6-s1-i4",
+                  title:
+                    "Kleinflächenpauschale bis 6,0m² Fliesen, Material: Exklusiv",
+                  description: `Material: "EXKLUSIV" - Fliesen abschlagen, entsorgen, Untergrund vorbereiten, falls erforderlich Verschliessen von Stemmschlitze,
+                  ausgleichen, inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
+                  inkl. Reinigungskosten sowie Fahrtkosten bzw. Baustelleneinrichtung
+                  Preisvereinbarung mit SV`,
+                  unit: "PA",
+                  price: "VBmSV",
+                },
+              ],
+            },
+            {
+              id: "g6-s2",
+              title: "Verlegearbeiten",
+              items: [
+                {
+                  id: "g6-s2-i1",
+                  title: "Fliesen abbrechen und entsorgen (ab 6,1m²)",
+                  description: "",
+                  unit: "m²",
+                  price: 24.9,
+                },
+                {
+                  id: "g6-s2-i2",
+                  title: "Untergrund vorbereiten, ausgleichen (ab 6,1m²)",
+                  description: "",
+                  unit: "m²",
+                  price: 19.0,
+                },
+                {
+                  id: "g6-s2-i3",
+                  title: "Fliesen verlegen (ab 6,1m²)",
+                  description:
+                    "Fliesen verlegen (unabhängig der Verlegeart) inkl. Verfugung und der Silikonverfugung (ab 6,1m²)",
+                  unit: "m²",
+                  price: 55.0,
+                },
+                {
+                  id: "g6-s2-i4",
+                  title:
+                    "Sockelfliese setzen inkl. Silikonverfugung (ohne Material)",
+                  description: "",
+                  unit: "m²",
+                  price: 19.1,
+                },
+                {
+                  id: "g6-s2-i5",
+                  title: "Silikonfugen entfernen und herstellen",
+                  description: "",
+                  unit: "m²",
+                  price: 12.1,
+                },
+                {
+                  id: "g6-s2-i6",
+                  title:
+                    "Feuchtigkeitsisolierung herstellen inkl. Eckdichtband W3",
+                  description: "",
+                  unit: "m²",
+                  price: 41.9,
+                },
+                {
+                  id: "g6-s2-i7",
+                  title: "Aufzahlung für Abdichtung ab Klasse W4 aufwärts",
+                  description: "",
+                  unit: "m²",
+                  price: 13.0,
+                },
+                {
+                  id: "g6-s2-i8",
+                  title: "Schlüterschiene liefern und setzen",
+                  description: "",
+                  unit: "m",
+                  price: 18.6,
+                },
+                {
+                  id: "g6-s2-i9",
+                  title: "Revisionsöffnung liefern und neu versetzen Standard",
+                  description: "",
+                  unit: "STK",
+                  price: 66.1,
+                },
+                {
+                  id: "g6-s2-i10",
+                  title:
+                    "Revisionsöffnung liefern und neu versetzen mit Magnet",
+                  description: "",
+                  unit: "STK",
+                  price: 86.0,
+                },
+              ],
+            },
+            {
+              id: "g6-s3",
+              title: "Nebenarbeiten",
+              items: [
+                {
+                  id: "g6-s3-i1",
+                  title: "Einmauern Badewanne",
+                  description: "",
+                  unit: "PA",
+                  price: 346.1,
+                },
+                {
+                  id: "g6-s3-i2",
+                  title: "Einmauern Brausetasse",
+                  description: "",
+                  unit: "PA",
+                  price: 262.3,
+                },
+                {
+                  id: "g6-s3-i3",
+                  title: "Einmauern/Verkleiden Unterputz-Spülkasten",
+                  description: "",
+                  unit: "PA",
+                  price: 268.0,
+                },
+              ],
+            },
+            {
+              id: "g6-s4",
+              title: "Material",
+              items: [
+                {
+                  id: "g6-s4-i1",
+                  title: "Material Standard",
+                  description: 'Material "Standard" liefern inkl. Verschnitt',
+                  unit: "m²",
+                  price: 35.2,
+                },
+                {
+                  id: "g6-s4-i2",
+                  title: "Material Mittlere Qualität",
+                  description:
+                    'Material "mittlere Qualität" liefern inkl. Verschnitt',
+                  unit: "m²",
+                  price: 45.1,
+                },
+                {
+                  id: "g6-s4-i3",
+                  title: "Material Exklusiv",
+                  description:
+                    'Material "Exklusiv" liefern inkl. Verschnitt; Listenpreis',
+                  unit: "m²",
+                  price: "LP",
+                },
+              ],
+            },
+            {
+              id: "g6-s5",
+              title: "Professionistenpreise",
+              items: [
+                {
+                  id: "g6-s5-i1",
+                  title: "Facharbeiter",
+                  description: "",
+                  unit: "h",
+                  price: 68.0,
+                },
+                {
+                  id: "g6-s5-i2",
+                  title: "Helfer",
+                  description: "",
+                  unit: "h",
+                  price: 56.0,
+                },
+                {
+                  id: "g6-s5-i3",
+                  title: "Partiestunde",
+                  description: "",
+                  unit: "PSt",
+                  price: 124.0,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g7",
+          title: "TROCKENBAU / BAUMEISTER",
+          subgroups: [
+            {
+              id: "g7-s1",
+              title: "Kleinflächen",
+              items: [
+                {
+                  id: "g7-s1-i1",
+                  title:
+                    "Kleinflächenpauschale bis 1m² Gipskartonöffnungen verschliessen",
+                  description: `Kleinflächenpauschale bis 1m² Gipskartonöffnungen verschliessen und maler- /fliesenlegerfertig herstellen
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung inkl. Entsorgung`,
+                  unit: "PA",
+                  price: 177.0,
+                },
+                {
+                  id: "g7-s1-i2",
+                  title:
+                    "Kleinflächenpauschale von 1,1m² bis 5,0m² Gipskartonöffnungen verschliessen",
+                  description: `Kleinflächenpauschale 1,1m² bis 5,0m² Gipskartonbeplankungen-/Verkleidung (ein-/mehrfach) inkl. Unterkonstruktion, abbrechen und liefern;
+                  inkl. notwendiger Isolierungsmaßnahmen;
+                  Maler-/Fliesenlegerfertig herstellen;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung inkl. Entsorgung`,
+                  unit: "PA",
+                  price: 473.7,
+                },
+                {
+                  id: "g7-s1-i3",
+                  title: "Installationsschächte Gipskartonverkleidung",
+                  description: `Installationsschächte Gipskartonbeplankungen-/Verkleidung (mehrfach) inkl. Unterkonstruktion, abbrechen und liefern;
+                  inkl. notwendiger Isolierungsmaßnahmen;
+                  Maler-/Fliesenlegerfertig herstellen;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung inkl. Entsorgung
+                  Preisvereinbarung mit SV`,
+                  unit: "PA",
+                  price: "VBmSV",
+                },
+                {
+                  id: "g7-s1-i4",
+                  title:
+                    "Wand- Deckenputz innen abbrechen und neu herstellen bis 2,5m²",
+                  description: `Kleinflächenpauschale bis 2,5m² Wand- Deckenputz innen abschlagen und Sanierputz aufbringen inkl. Fahrtkosten
+                  bzw. Baustelleneinrichtung inkl. Entsorgung`,
+                  unit: "PA",
+                  price: 288.4,
+                },
+                {
+                  id: "g7-s1-i5",
+                  title:
+                    "Wand- Deckenputz innen abbrechen und neu herstellen bis 5,0m²",
+                  description: `Kleinflächenpauschale bis 5,0² Wand- Deckenputz innen abschlagen und Sanierputz aufbringen inkl. Fahrtkosten
+                  bzw. Baustelleneinrichtung inkl. Entsorgung`,
+                  unit: "PA",
+                  price: 403.8,
+                },
+              ],
+            },
+            {
+              id: "g7-s2",
+              title: "Verlegearbeiten Decke / Wand",
+              items: [
+                {
+                  id: "g7-s2-i1",
+                  title: "Gipskarton-Decke/Wand abbrechen & entsorgen, EINFACH",
+                  description: "ohne Unterkonstruktion, inkl. Dämmmaterial",
+                  unit: "m²",
+                  price: 18.3,
+                },
+                {
+                  id: "g7-s2-i2",
+                  title:
+                    "Gipskarton-Decke/Wand abbrechen & entsorgen, ZWEIFACH",
+                  description: "ohne Unterkonstruktion, inkl. Dämmmaterial",
+                  unit: "m²",
+                  price: 26.2,
+                },
+                {
+                  id: "g7-s2-i3",
+                  title: "Gipskarton-Decke/Wand liefern & verlegen, EINFACH",
+                  description:
+                    "ohne Unterkonstruktion, inkl. Dämmmaterial, Malfertig",
+                  unit: "m²",
+                  price: 48.2,
+                },
+                {
+                  id: "g7-s2-i4",
+                  title: "Gipskarton-Decke/Wand liefern & verlegen, ZWEIFACH",
+                  description:
+                    "ohne Unterkonstruktion, inkl. Dämmmaterial, Malfertig",
+                  unit: "m²",
+                  price: 62.8,
+                },
+                {
+                  id: "g7-s2-i5",
+                  title:
+                    "Gipskarton-Decke/Wand abbrechen & entsorgen, EINFACH (MIT Unterkonstruktion)",
+                  description: "inkl. Dämmmaterial",
+                  unit: "m²",
+                  price: 27.4,
+                },
+                {
+                  id: "g7-s2-i6",
+                  title:
+                    "Gipskarton-Decke/Wand abbrechen & entsorgen, ZWEIFACH (MIT Unterkonstruktion)",
+                  description: "inkl. Dämmmaterial",
+                  unit: "m²",
+                  price: 34.9,
+                },
+                {
+                  id: "g7-s2-i7",
+                  title:
+                    "Gipskarton-Decke/Wand liefern & verlegen, EINFACH (MIT Unterkonstruktion)",
+                  description: "inkl. Dämmmaterial, Malfertig",
+                  unit: "m²",
+                  price: 86.6,
+                },
+                {
+                  id: "g7-s2-i8",
+                  title:
+                    "Gipskarton-Decke/Wand liefern & verlegen, ZWEIFACH (MIT Unterkonstruktion)",
+                  description: "inkl. Dämmmaterial, Malfertig",
+                  unit: "m²",
+                  price: 95.4,
+                },
+                {
+                  id: "g7-s2-i9",
+                  title: "Gipskarton-Decke/Wand EI 90 liefern und verlegen",
+                  description: "Malerfertig",
+                  unit: "m²",
+                  price: 132.9,
+                },
+                {
+                  id: "g7-s2-i10",
+                  title: "Gipskarton-Decke/Wand EI 60 Aufzahlung",
+                  description: "Bezug auf Position 080207",
+                  unit: "m²",
+                  price: 31.0,
+                },
+                {
+                  id: "g7-s2-i11",
+                  title:
+                    "Dampfbremse liefern, montieren, verkleben der Stöße (bis 20m²)",
+                  description: "",
+                  unit: "m²",
+                  price: 15.1,
+                },
+                {
+                  id: "g7-s2-i12",
+                  title:
+                    "Dampfbremse liefern, montieren, verkleben der Stöße (ab 20,1m²-50m²)",
+                  description: "",
+                  unit: "m²",
+                  price: 12.9,
+                },
+                {
+                  id: "g7-s2-i13",
+                  title:
+                    "Dampfbremse liefern, montieren, verkleben der Stöße (ab 50,1m²)",
+                  description: "",
+                  unit: "m²",
+                  price: 11.9,
+                },
+                {
+                  id: "g7-s2-i14",
+                  title: "Mineralfaserdecke - Platten tauschen",
+                  description:
+                    "Austauschen von Platten einer Mineralfaserdecke, Format 62,5 x 62,5 cm. Einlegen in die vorhandene Tragkonstruktion, inkl. Abtransportieren und Entsorgen der vorhandenen Platten",
+                  unit: "STK",
+                  price: 11.0,
+                },
+                {
+                  id: "g7-s2-i15",
+                  title:
+                    "Mineralfaserdeckenplatte pro Stück demontieren liefern und montieren",
+                  description: "Inkl. Material",
+                  unit: "STK",
+                  price: 25.8,
+                },
+                {
+                  id: "g7-s2-i16",
+                  title: "Mineralfaserdecke liefern und montieren",
+                  description: "ohne Unterkonstruktion",
+                  unit: "m²",
+                  price: 37.1,
+                },
+                {
+                  id: "g7-s2-i17",
+                  title: "Wand- Deckenputz abschlagen und entsorgen (ab 5,0m²)",
+                  description: "",
+                  unit: "m²",
+                  price: 26.1,
+                },
+                {
+                  id: "g7-s2-i18",
+                  title: "Wand- Deckenputz grob und fein herstellen (ab 5,0m²)",
+                  description: "",
+                  unit: "m²",
+                  price: 65.0,
+                },
+                {
+                  id: "g7-s2-i19",
+                  title:
+                    "Schlitze schließen und verputzen bis zu einem Querschnitt 10cmx10cm",
+                  description:
+                    "Leitungsschlitze an Innenbauteilen (ohne Gipskarton) mit dem Bestand entsprechendem Material schließen und maler-/fliesenlegerfertig herstellen (ohne Alternativabdichtung). Inkl. Material",
+                  unit: "lfm",
+                  price: 46.1,
+                },
+                {
+                  id: "g7-s2-i20",
+                  title:
+                    "Schlitze schließen und verputzen bis zu einem Querschnitt 20cmx20cm",
+                  description:
+                    "Leitungsschlitze an Innenbauteilen (ohne Gipskarton) mit dem Bestand entsprechendem Material schließen und maler-/fliesenlegerfertig herstellen (ohne Alternativabdichtung). Inkl. Material",
+                  unit: "lfm",
+                  price: 85.7,
+                },
+                {
+                  id: "g7-s2-i21",
+                  title:
+                    "Mauerdurchbrüche schließen und verputzen bis zu einem Querschnitt 15cmx15cm",
+                  description:
+                    "Mauerdurchbrüche an tragenden und nicht tragenden Innenbauteilen (ohne Gipskarton) mit dem Bestand entsprechendem Material schließen und maler-/fliesenlegerfertig herstellen (ohne Alternativabdichtung). Ohne Unterschied ob durch den Durchbruch Leitungen verlaufen oder dieser leer ist. Inkl.Material",
+                  unit: "STK",
+                  price: 47.0,
+                },
+              ],
+            },
+            {
+              id: "g7-s3",
+              title: "Verlegearbeiten Boden",
+              items: [
+                {
+                  id: "g7-s3-i1",
+                  title:
+                    "Estrich abbrechen, vertragen, entsorgen und neu herstellen Speedestrich (bis max. 2,0m²)",
+                  description: `inkl. Trittschall-/Wärmedämmung, ergänzen der Beschüttung (bis max 2,0m²)
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                  unit: "PA",
+                  price: 699.2,
+                },
+                {
+                  id: "g7-s3-i2",
+                  title:
+                    "Estrich abbrechen, vertragen, entsorgen und neu herstellen (bis max. 4,0m²)",
+                  description: `inkl. Trittschall-/Wärmedämmung, ergänzen der Beschüttung (bis max 4,0m²)
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                  unit: "PA",
+                  price: 794.6,
+                },
+                {
+                  id: "g7-s3-i3",
+                  title:
+                    "Estrich abbrechen, vertragen, entsorgen und neu herstellen (4,1m² bis 8m²)",
+                  description:
+                    "inkl. Trittschall-/Wärmedämmung (4,1m² bis 8,0m²)",
+                  unit: "m²",
+                  price: 178.6,
+                },
+                {
+                  id: "g7-s3-i4",
+                  title:
+                    "Estrich abbrechen, vertragen, entsorgen und neu herstellen (ab 8,1m²)",
+                  description: "inkl. Trittschall-/Wärmedämmung (ab 8,1m²)",
+                  unit: "m²",
+                  price: 109.5,
+                },
+                {
+                  id: "g7-s3-i5",
+                  title:
+                    "Estrichschlitze verschliessen bis zu einer Breite von 30 cm",
+                  description: "",
+                  unit: "lfm",
+                  price: 55.1,
+                },
+                {
+                  id: "g7-s3-i6",
+                  title: "Beschüttung abbrechen und wie Bestand erneuern",
+                  description: "",
+                  unit: "m³",
+                  price: 418.0,
+                },
+                {
+                  id: "g7-s3-i7",
+                  title: "Blindboden, Polsterung abbrechen & entsorgen",
+                  description: "",
+                  unit: "m²",
+                  price: 27.6,
+                },
+                {
+                  id: "g7-s3-i8",
+                  title: "Blindboden, Polsterung inkl. Isolierung herstellen",
+                  description: "",
+                  unit: "m²",
+                  price: 51.0,
+                },
+                {
+                  id: "g7-s3-i9",
+                  title:
+                    "Verlegeplatten V100 (Blindboden) abbrechen (ohne Unterkonstruktion)",
+                  description: "",
+                  unit: "m²",
+                  price: 15.4,
+                },
+                {
+                  id: "g7-s3-i10",
+                  title:
+                    "Verlegeplatten V100/19mm-Platten liefern und verlegen, 1-lagig (ohne Unterkonstruktion)",
+                  description: "",
+                  unit: "m²",
+                  price: 42.4,
+                },
+              ],
+            },
+            {
+              id: "g7-s4",
+              title: "Außenarbeiten",
+              items: [
+                {
+                  id: "g7-s4-i1",
+                  title:
+                    "Fassadenarbeiten: bis 30m² Spachteln, Vernetzen, Silikatputz",
+                  description: "",
+                  unit: "m²",
+                  price: 55.3,
+                },
+                {
+                  id: "g7-s4-i2",
+                  title:
+                    "Fassadenarbeiten: Ab 30,1m² bis 100m² Spachteln, Vernetzen, Silikatputz",
+                  description: "",
+                  unit: "m²",
+                  price: 49.7,
+                },
+                {
+                  id: "g7-s4-i3",
+                  title:
+                    "Fassadenarbeiten: Ab 100,1m² Spachteln, Vernetzen, Silikatputz",
+                  description: "",
+                  unit: "m²",
+                  price: 46.3,
+                },
+                {
+                  id: "g7-s4-i4",
+                  title: "Putzarbeiten aller Art",
+                  description: "",
+                  unit: "m²",
+                  price: 38.6,
+                },
+                {
+                  id: "g7-s4-i5",
+                  title:
+                    "Fassadenarbeiten: bis 30m² Außendispersion / Silikatfarbe",
+                  description: "",
+                  unit: "m²",
+                  price: 29.6,
+                },
+                {
+                  id: "g7-s4-i6",
+                  title:
+                    "Fassadenarbeiten: ab 30,1m² bis 100m² Außendispersion / Silikatfarbe",
+                  description: "",
+                  unit: "m²",
+                  price: 26.5,
+                },
+                {
+                  id: "g7-s4-i7",
+                  title:
+                    "Fassadenarbeiten: ab 100,1m² Außendispersion / Silikatfarbe",
+                  description: "",
+                  unit: "m²",
+                  price: 23.2,
+                },
+                {
+                  id: "g7-s4-i8",
+                  title: "Fassadenarbeiten: Faschen / Lisenen / Gesimse",
+                  description: "",
+                  unit: "m",
+                  price: 12.9,
+                },
+              ],
+            },
+            {
+              id: "g7-s5",
+              title: "Gerüst",
+              items: [
+                {
+                  id: "g7-s5-i1",
+                  title:
+                    "Roll- bzw. Standardgerüst bis 5m Arbeitshöhe Inkl. Sicht und Sturzsicherung",
+                  description: "(exkl. Fahrtkosten bzw. Baustelleneinrichtung)",
+                  unit: "PA",
+                  price: 223.4,
+                },
+                {
+                  id: "g7-s5-i2",
+                  title:
+                    "Roll- bzw. Standardgerüst bis 8m Arbeitshöhe Inkl. Sicht und Sturzsicherung",
+                  description: "(exkl. Fahrtkosten bzw. Baustelleneinrichtung)",
+                  unit: "PA",
+                  price: 414.0,
+                },
+                {
+                  id: "g7-s5-i3",
+                  title:
+                    "Arbeitsgerüst unabhängig der Standzeit Inkl. Sicht und Sturzsicherung bis 100m²",
+                  description: "",
+                  unit: "m²",
+                  price: 12.8,
+                },
+                {
+                  id: "g7-s5-i4",
+                  title:
+                    "Arbeitsgerüst unabhängig der Standzeit Inkl. Sicht und Sturzsicherung ab 100,1m²",
+                  description: "",
+                  unit: "m²",
+                  price: 8.5,
+                },
+                {
+                  id: "g7-s5-i5",
+                  title: "Arbeits-/Scherenbühne inkl. An- und Abtransport",
+                  description: "",
+                  unit: "TAG",
+                  price: 414.0,
+                },
+              ],
+            },
+            {
+              id: "g7-s6",
+              title: "Professionistenpreise",
+              items: [
+                {
+                  id: "g7-s6-i1",
+                  title: "Facharbeiter",
+                  description: "",
+                  unit: "h",
+                  price: 68.0,
+                },
+                {
+                  id: "g7-s6-i2",
+                  title: "Helfer",
+                  description: "",
+                  unit: "h",
+                  price: 56.0,
+                },
+                {
+                  id: "g7-s6-i3",
+                  title: "Partiestunde",
+                  description: "",
+                  unit: "PSt",
+                  price: 124.0,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g8",
+          title: "Tischler",
+          subgroups: [
+            {
+              id: "g8-s1",
+              title: "Kleinflächen",
+              items: [
+                {
+                  id: "g8-s1-i1",
+                  title:
+                    "Kleinflächenpauschale bis 5,0m² Holzdecke, Material: Standard / mittlere Qualität",
+                  description: `Holzdecke/Paneele/Vertäfelung, abbrechen, entsorgen, liefern und montieren;
+                  inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                  unit: "PA",
+                  price: 576.3,
+                },
+                {
+                  id: "g8-s1-i2",
+                  title:
+                    "Kleinflächenpauschale von 5,1m² bis 10,0m² Holzdecke, Material: Standard / mittlere Qualität",
+                  description: `Holzdecke/Paneele/Vertäfelung, abbrechen, entsorgen, liefern und montieren;
+                  inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                  unit: "PA",
+                  price: 768.4,
+                },
+                {
+                  id: "g8-s1-i3",
+                  title:
+                    "Kleinflächenpauschale bis 5,0m² Holzdecke, Material: Standard / mittlere Qualität, inkl. Unterkonstruktion",
+                  description: `Holzdecke/Paneele/Vertäfelung inkl. Unterkonstruktion, abbrechen, entsorgen, liefern und montieren;
+                  inkl. Abschlussleisten;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                  unit: "PA",
+                  price: 724.3,
+                },
+                {
+                  id: "g8-s1-i4",
+                  title:
+                    "Kleinflächenpauschale von 5,1m² bis 10,0m² Holzdecke, Material: Standard / mittlere Qualität, inkl. Unterkonstruktion",
+                  description: `Holzdecke/Paneele/Vertäfelung inkl. Unterkonstruktion, abbrechen, entsorgen, liefern und montieren;
+                  inkl. Abschlussleisten;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                  unit: "PA",
+                  price: 988.8,
+                },
+                {
+                  id: "g8-s1-i5",
+                  title:
+                    "Kleinflächenpauschale bis 5,0m² Holzdecke, Material: Exklusiv",
+                  description: `Holzdecke/Paneele/Vertäfelung, abbrechen, entsorgen, liefern und montieren;
+                  inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung
+                  Preisvereinbarung mit SV`,
+                  unit: "PA",
+                  price: "VBmSV",
+                },
+                {
+                  id: "g8-s1-i6",
+                  title:
+                    "Kleinflächenpauschale von 5,1m² bis 10,0m² Holzdecke, Material: Exklusiv",
+                  description: `Holzdecke/Paneele/Vertäfelung, abbrechen, entsorgen, liefern und montieren;
+                  inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung
+                  Preisvereinbarung mit SV`,
+                  unit: "PA",
+                  price: "VBmSV",
+                },
+                {
+                  id: "g8-s1-i7",
+                  title:
+                    "Kleinflächenpauschale bis 5,0m² Holzdecke, Material: Exklusiv, inkl. Unterkonstruktion",
+                  description: `Holzdecke/Paneele/Vertäfelung inkl. Unterkonstruktion, abbrechen, entsorgen, liefern und montieren;
+                  inkl. Abschlussleisten;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung
+                  Preisvereinbarung mit SV`,
+                  unit: "PA",
+                  price: "VBmSV",
+                },
+                {
+                  id: "g8-s1-i8",
+                  title:
+                    "Kleinflächenpauschale von 5,1m² bis 10,0m² Holzdecke, Material: Exklusiv, inkl. Unterkonstruktion",
+                  description: `Holzdecke/Paneele/Vertäfelung inkl. Unterkonstruktion, abbrechen, entsorgen, liefern und montieren;
+                  inkl. Abschlussleisten;
+                  inkl. Fahrtkosten bzw. Baustelleneinrichtung
+                  Preisvereinbarung mit SV`,
+                  unit: "PA",
+                  price: "VBmSV",
+                },
+              ],
+            },
+            {
+              id: "g8-s2",
+              title: "Verlegearbeiten",
+              items: [
+                {
+                  id: "g8-s2-i1",
+                  title:
+                    "Holzdecke/Paneele/Vertäfelung abbrechen und entsorgen ohne Unterkonstruktion (ab 10,1m²)",
+                  description: `Holzdecke/Paneele/Vertäfelung abbrechen und entsorgen (ohne Unterkonstruktion);
+                  inkl. Abschlussleisten
+                  ab 10,1m² Fläche`,
+                  unit: "m²",
+                  price: 24.4,
+                },
+                {
+                  id: "g8-s2-i2",
+                  title:
+                    "Holzdecke/Paneele/Vertäfelung abbrechen und entsorgen inkl. Unterkonstruktion (ab 10,1m²)",
+                  description: `Holzdecke/Paneele/Vertäfelung abbrechen und entsorgen (inkl. Unterkonstruktion);
+                  inkl. Abschlussleisten
+                  ab 10,1m² Fläche`,
+                  unit: "m²",
+                  price: 28.7,
+                },
+                {
+                  id: "g8-s2-i3",
+                  title:
+                    "Holzdecke/Paneele/Vertäfelung montieren ohne Unterkonstruktion (ab 10,1m²)",
+                  description: `Holzdecke/Paneele/Vertäfelung montieren (ohne Unterkonstruktion)
+                  ab 10,1m² Fläche, ohne Material`,
+                  unit: "m²",
+                  price: 26.7,
+                },
+                {
+                  id: "g8-s2-i4",
+                  title:
+                    "Holzdecke/Paneele/Vertäfelung montieren inkl. Unterkonstruktion (ab 10,1m²)",
+                  description: `Holzdecke/Paneele/Vertäfelung montieren (inkl. Unterkonstruktion)
+                  ab 10,1m² Fläche, ohne Material`,
+                  unit: "m²",
+                  price: 45.6,
+                },
+                {
+                  id: "g8-s2-i5",
+                  title: "Holzdecke schleifen und 2x streichen",
+                  description: "",
+                  unit: "m²",
+                  price: 23.0,
+                },
+              ],
+            },
+            {
+              id: "g8-s3",
+              title: "Material Standard",
+              items: [
+                {
+                  id: "g8-s3-i1",
+                  title: "Material Standard - Holz",
+                  description: `liefern inkl. Verschnitt, sowie notwendiger Abschlussleisten`,
+                  unit: "m²",
+                  price: 34.9,
+                },
+                {
+                  id: "g8-s3-i2",
+                  title: "Material Standard - Paneele",
+                  description: `liefern inkl. Verschnitt, sowie notwendiger Abschlussleisten`,
+                  unit: "m²",
+                  price: 28.6,
+                },
+              ],
+            },
+            {
+              id: "g8-s4",
+              title: "Material Mittlere Qualität",
+              items: [
+                {
+                  id: "g8-s4-i1",
+                  title: "Material Standard - Holz",
+                  description: `Listenpreis`,
+                  unit: "m²",
+                  price: 44.4,
+                },
+                {
+                  id: "g8-s3-i2",
+                  title: "Material Standard - Paneele",
+                  description: `Listenpreis`,
+                  unit: "m²",
+                  price: 38.1,
+                },
+              ],
+            },
+            {
+              id: "g8-s5",
+              title: "Material Exklusiv",
+              items: [
+                {
+                  id: "g8-s5-i1",
+                  title: "Material Standard - Holz",
+                  description: `liefern inkl. Verschnitt, sowie notwendiger Abschlussleisten`,
+                  unit: "m²",
+                  price: "LP",
+                },
+                {
+                  id: "g8-s5-i2",
+                  title: "Material Standard - Paneele",
+                  description: `liefern inkl. Verschnitt, sowie notwendiger Abschlussleisten`,
+                  unit: "m²",
+                  price: "LP",
+                },
+              ],
+            },
+            {
+              id: "g8-s6",
+              title: "Material Sonstiges",
+              items: [
+                {
+                  id: "g8-s6-i1",
+                  title: "Material Nut- und Federsichtschalung Fichte",
+                  description: "",
+                  unit: "m²",
+                  price: 19.2,
+                },
+              ],
+            },
+            {
+              id: "g8-s7",
+              title: "Nebenarbeiten",
+              items: [
+                {
+                  id: "g8-s7-i1",
+                  title:
+                    "Innentüre mit Zarge bis 2 m² Durchgangslichte (Buche Esche Eiche)",
+                  description: `Innentüre mit Zarge, mittlere Qualität erneuern
+                  inkl. Abbruch und Entsorgung - Mat. Röhrenspann`,
+                  unit: "STK",
+                  price: 771.7,
+                },
+                {
+                  id: "g8-s7-i2",
+                  title: "Innentürblatt glatt/einfach (Buche Esche Eiche)",
+                  description: `Innentürblatt erneuern inkl. Entsorgung ; Mat. Röhrenspann`,
+                  unit: "STK",
+                  price: 381.6,
+                },
+                {
+                  id: "g8-s7-i3",
+                  title:
+                    "Zarge für Innentüren bis 2m² Durchgangslichte (Buche Esche Eiche)",
+                  description: `Zarge mittlerer Qualität erneuern wie Bestand, incl. Abbruch, aller
+                  erforderlichen Anschlußarbeiten und Entsorgung`,
+                  unit: "STK",
+                  price: 513.6,
+                },
+              ],
+            },
+            {
+              id: "g8-s8",
+              title: "Professionistenpreise",
+              items: [
+                {
+                  id: "g8-s8-i1",
+                  title: "Facharbeiter",
+                  description: "",
+                  unit: "h",
+                  price: 68.0,
+                },
+                {
+                  id: "g8-s8-i2",
+                  title: "Helfer",
+                  description: "",
+                  unit: "h",
+                  price: 56.0,
+                },
+                {
+                  id: "g8-s8-i3",
+                  title: "Partiestunde",
+                  description: "",
+                  unit: "PSt",
+                  price: 124.0,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g9",
+          title: "Brandschadenreinigung",
+          subgroups: [
+            {
+              id: "g9-s1",
+              title: "Reinigung",
+              items: [
+                {
+                  id: "g9-s1-i1",
+                  title:
+                    "Russbeaufschlagung Absaugen von Wand- / Decken- und Fassadenflächen",
+                  description: "",
+                  unit: "m²",
+                  price: 4.3,
+                },
+                {
+                  id: "g9-s1-i2",
+                  title:
+                    "Russbeaufschlagung Reinigen von Wand- / Decken- und Fassadenflächen",
+                  description: `Reinigen im Handwischverfahren und/oder Hochdruckreiniger unter Verwendung geeigneter chemischer Reinigungsmittel`,
+                  unit: "m²",
+                  price: 8.3,
+                },
+                {
+                  id: "g9-s1-i3",
+                  title:
+                    "Russbeaufschlagung Reinigen von Wand- / Bodenfliesen, ohne Fugennachbehandlung",
+                  description: `Reinigen im Handwischverfahren und/oder Hochdruckreiniger unter Verwendung geeigneter chemischer Reinigungsmittel
+            Eine allfällige erforderliche Fugennachbehandlung ist gesondert anzubieten`,
+                  unit: "m²",
+                  price: 12.3,
+                },
+                {
+                  id: "g9-s1-i4",
+                  title:
+                    "Russbeaufschlagung Reinigen von Holz-, Laminat-, PVC- sowie Linoleumböden",
+                  description: `inkl. Nachbehandlung (Polieren, Einlassen, etc.) unter Verwendung von dementsprechenden Reinigungsmaterialien`,
+                  unit: "m²",
+                  price: 9.3,
+                },
+                {
+                  id: "g9-s1-i5",
+                  title:
+                    "Russbeaufschlagung Reinigen von Holz- und Kunststofffenster (bis 2,0m² Fläche)",
+                  description: `Reinigen im Handwischverfahren unter Verwendung von dementsprechenden Reinigungsmaterialien;
+            Bis 2,0m² Fläche`,
+                  unit: "ST",
+                  price: 75.0,
+                },
+                {
+                  id: "g9-s1-i6",
+                  title:
+                    "Russbeaufschlagung Reinigen von Holz- und Kunststofffenster (ab 2,0m² Fläche)",
+                  description: `Reinigen im Handwischverfahren unter Verwendung von dementsprechenden Reinigungsmaterialien;
+            Ab 2,0m² Fläche`,
+                  unit: "ST",
+                  price: 88.8,
+                },
+                {
+                  id: "g9-s1-i7",
+                  title: "Russbeaufschlagung Reinigen von Türe und Stock",
+                  description: `Reinigen im Handwischverfahren unter Verwendung von dementsprechenden Reinigungsmaterialien`,
+                  unit: "ST",
+                  price: 88.8,
+                },
+                {
+                  id: "g9-s1-i8",
+                  title: "Extrahieren von Teppichbelägen",
+                  description: `unter Verwendung von dementsprechenden Reinigungsmaterialien`,
+                  unit: "m²",
+                  price: 11.0,
+                },
+                {
+                  id: "g9-s1-i9",
+                  title: "Geruchsneutralisation",
+                  description: `Ozonisierung bis 100m² zu behandelnde Bodenfläche inkl. Montage und Fahrtkosten.`,
+                  unit: "PA",
+                  price: 381.6,
+                },
+              ],
+            },
+            {
+              id: "g9-s2",
+              title: "Reinigungsmaterial",
+              items: [
+                {
+                  id: "g9-s2-i1",
+                  title: "15% Aufschlag auf Reinigungsmaterial auf Regie",
+                  description: "",
+                  unit: "%",
+                  price: 15,
+                },
+              ],
+            },
+            {
+              id: "g9-s3",
+              title: "Professionistenpreise",
+              items: [
+                {
+                  id: "g9-s3-i1",
+                  title: "Facharbeiter",
+                  description: "",
+                  unit: "h",
+                  price: 68.0,
+                },
+                {
+                  id: "g9-s3-i2",
+                  title: "Helfer",
+                  description: "",
+                  unit: "h",
+                  price: 56.0,
+                },
+                {
+                  id: "g9-s3-i3",
+                  title: "Partiestunde",
+                  description: "",
+                  unit: "PSt",
+                  price: 124.0,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g10",
+          title: "SONNENSCHUTZ",
+          subgroups: [
+            {
+              id: "g10-s1",
+              title: "SONNENSCHUTZ",
+              items: [
+                {
+                  id: "g10-s1-i1",
+                  title: "Rollladen Alu (Material)",
+                  unit: "m²",
+                  price: 135.0,
+                },
+                {
+                  id: "g10-s1-i2",
+                  title: "Rollladen Kunststoff (Material)",
+                  unit: "m²",
+                  price: 105.0,
+                },
+                {
+                  id: "g10-s1-i3",
+                  title: "Raffstore (Material)",
+                  unit: "m²",
+                  price: 175.0,
+                },
+                {
+                  id: "g10-s1-i4",
+                  title: "Aussenjalousien (Material)",
+                  unit: "m²",
+                  price: 127.0,
+                },
+                {
+                  id: "g10-s1-i5",
+                  title:
+                    "Arbeitsaufwand - Demontage und Montage (exkl. Fahrtkosten & Baustelleneinrichtung)",
+                  unit: "PST",
+                  price: 115.1,
+                },
+                {
+                  id: "g10-s1-i6",
+                  title: "Markisenstoff",
+                  unit: "m²",
+                  price: 55.2,
+                },
+                {
+                  id: "g10-s1-i7",
+                  title: "Markisenvolant",
+                  unit: "Lfm",
+                  price: 27.8,
+                },
+                {
+                  id: "g10-s1-i8",
+                  title: "Markisenarm",
+                  unit: "STK",
+                  price: 403.8,
+                },
+                {
+                  id: "g10-s1-i9",
+                  title: "Entsorgung",
+                  unit: "STK",
+                  price: 18.6,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g11",
+          title: "REGIESTUNDENSATZ Richtpreise (Allgemein)",
+          subgroups: [
+            {
+              id: "g11-s1",
+              title: "REGIESTUNDENSATZ Richtpreise (Allgemein)",
+              items: [
+                {
+                  id: "g11-s1-i1",
+                  title: "Facharbeiter Installationen",
+                  description:
+                    "Facharbeiter mit einschlägiger Qualifikation als Elektriker,HLS-Installateur. Richtwert, höhere Stundenpreise mit SV vereinbaren",
+                  unit: "STD",
+                  price: 68.0,
+                },
+                {
+                  id: "g11-s1-i2",
+                  title: "Facharbeiter Bau- und Baunebengewerbe",
+                  description:
+                    "Maurer, Maler, Tapezierer, Boden- oder Fliesenleger etc. Richtwert, höhere Stundenpreise mit SV vereinbaren",
+                  unit: "STD",
+                  price: 68.0,
+                },
+                {
+                  id: "g11-s1-i3",
+                  title: "Facharbeiter Dachdecker, Spengler, Zimmermann",
+                  description:
+                    "Facharbeiter mit einschlägiger Qualifikation. Richtwert, höhere Stundenpreise mit SV vereinbaren",
+                  unit: "STD",
+                  price: 69.0,
+                },
+                {
+                  id: "g11-s1-i4",
+                  title: "Hilfsarbeiter",
+                  description:
+                    "Hilfsarbeiter für sämtliche Gewerke. Richtwert, höhere Stundenpreise mit SV vereinbaren",
+                  unit: "STD",
+                  price: 56.0,
+                },
+                {
+                  id: "g11-s1-i5",
+                  title: "Reinigungsfachkraft",
+                  description:
+                    "Inventar- und Endreinigung Gebäude. Richtwert, höhere Stundenpreise mit SV vereinbaren",
+                  unit: "STD",
+                  price: 45.0,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g12",
+          title: "SUBUNTERNEHMERLEISTUNGEN",
+          subgroups: [
+            {
+              id: "g12-s1",
+              title: "SUBUNTERNEHMERLEISTUNGEN",
+              items: [
+                {
+                  id: "g12-s1-i1",
+                  title: "Zuschlag für Subunternehmerleistungen",
+                  description:
+                    "Zuschlag für Subunternehmerleistungen (ohne Berücksichtigung von Skontovereinbarungen). Dieser Zuschlag gilt nicht für die obgenannten Professionen ausgenommen Spezialarbeiten wie z.B. Mosaikparkett, Stuckarbeiten, Spachteltechnik, etc. Darüberhinaus gilt der Zuschlag nicht für das Installateurgewerbe. Die 7% gelten bis zu einer Schadenssumme von € 5.000,--. Darüberhinaus ist der Zuschlag nachvollziehbar nach Aufwand abzurechnen.",
+                  unit: "%",
+                  price: 7,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "g13",
+          title: "FAHRTKOSTEN und BAUSTELLENEINRICHTUNG",
+          subgroups: [
+            {
+              id: "g13-s1",
+              title: "FAHRTKOSTEN und BAUSTELLENEINRICHTUNG",
+              items: [
+                {
+                  id: "g13-s1-i1",
+                  title: "bis € 800,00",
+                  description: "",
+                  unit: "PA",
+                  price: 82.5,
+                },
+                {
+                  id: "g13-s1-i2",
+                  title: "€ 800,01 bis € 5.000,00",
+                  description: "",
+                  unit: "%",
+                  price: 9.0,
+                },
+                {
+                  id: "g13-s1-i3",
+                  title: "€ 5.000,01 bis € 10.000,00",
+                  description: "",
+                  unit: "%",
+                  price: 7.0,
+                },
+                {
+                  id: "g13-s1-i4",
+                  title: "10.000,01 bis € 15.000,00",
+                  description: "",
+                  unit: "%",
+                  price: 5.0,
+                },
+                {
+                  id: "g13-s1-i5",
+                  title: "€ 15.000,01 bis € 30.000,00",
+                  description: "",
+                  unit: "%",
+                  price: 4.0,
+                },
+                {
+                  id: "g13-s1-i6",
+                  title: "€ 30.000,01 bis € 50.000,00",
+                  description: "",
+                  unit: "%",
+                  price: 3.0,
+                },
+                {
+                  id: "g13-s1-i7",
+                  title: "ab € 50.000,01",
+                  description: "",
+                  unit: "%",
+                  price: 2.0,
+                },
+                {
+                  id: "g13-s1-i8",
+                  title:
+                    "Parkgebühren für Kurzparkzone/ Fußgängerzone für die Dauer der Baustelle einmalig. Nach Rücksprache mit SV",
+                  description: "",
+                  unit: "PA",
+                  price: 89.0,
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      // ---------------------------
+      // Hilfsfunktionen Formatierung
+      // ---------------------------
+      function formatCurrency(v) {
+        if (v === "" || v === null || v === undefined || isNaN(v))
+          return "0,00 €";
+        return (
+          Number(v).toLocaleString("de-DE", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }) + " €"
+        );
+      }
+
+      function escapeHtml(s) {
+        if (s === null || s === undefined) return "";
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      // ---------------------------
+      // State: ausgewählte Positionen
+      // ---------------------------
+      let selected = []; // { id, title, description, unit, price, qty }
+
+      // ---------------------------
+      // Render Katalog (links)
+      // ---------------------------
+      const catalogContainer = document.getElementById("catalogContainer");
+      function renderCatalog(filter = "") {
+        catalogContainer.innerHTML = "";
+        const lowerFilter = filter.trim().toLowerCase();
+        catalog.forEach((group) => {
+          const groupEl = document.createElement("div");
+          groupEl.className = "mb-3";
+
+          const groupHeader = document.createElement("div");
+          groupHeader.className =
+            "d-flex justify-content-between align-items-center mb-1";
+          groupHeader.innerHTML = `<div class="fw-bold">${escapeHtml(
+            group.title
+          )}</div>
+                            <div class="small text-muted">${
+                              group.subgroups.length
+                            } Sub</div>`;
+          groupEl.appendChild(groupHeader);
+
+          group.subgroups.forEach((sg) => {
+            const sgId = `collapse-${sg.id}`;
+            const sgWrap = document.createElement("div");
+            sgWrap.className = "mb-2";
+
+            // Subgroup header (toggle)
+            const sgHeader = document.createElement("div");
+            sgHeader.className =
+              "collapse-toggle d-flex justify-content-between align-items-center p-2 border rounded";
+            sgHeader.setAttribute("data-bs-toggle", "collapse");
+            sgHeader.setAttribute("data-bs-target", "#" + sgId);
+            sgHeader.setAttribute("aria-expanded", "false");
+            sgHeader.innerHTML = `<div><strong>${escapeHtml(
+              sg.title
+            )}</strong></div><div class="small text-muted">#${
+              sg.items.length
+            }</div>`;
+            sgWrap.appendChild(sgHeader);
+
+            // Items container (collapsible)
+            const itemsDiv = document.createElement("div");
+            itemsDiv.className = "collapse mt-2";
+            itemsDiv.id = sgId;
+
+            let anyMatchInSubgroup = false;
+            sg.items.forEach((it) => {
+              const searchText = (
+                it.title +
+                " " +
+                (it.description || "") +
+                " " +
+                (it.unit || "")
+              ).toLowerCase();
+              if (lowerFilter && !searchText.includes(lowerFilter)) return; // filter out
+              anyMatchInSubgroup = true;
+
+              const itemRow = document.createElement("div");
+              itemRow.className =
+                "d-flex align-items-center justify-content-between p-2 mb-1 border rounded item-row";
+              itemRow.innerHTML = `
+                                <div style="flex:1">
+                                  <div class="fw-semibold">${escapeHtml(
+                                    it.title
+                                  )}</div>
+                                  <div class="small text-muted">${escapeHtml(
+                                    it.description || ""
+                                  )}</div>
+                                  <div class="small text-muted">Einheit: ${escapeHtml(
+                                    it.unit || ""
+                                  )} — Preis: ${
+                it.price !== undefined && it.price !== ""
+                  ? formatCurrency(it.price)
+                  : "-"
+              }</div>
+                                </div>
+                                <div style="width:90px; text-align:right">
+                                  <button class="btn btn-sm btn-outline-primary add-item" data-id="${
+                                    it.id
+                                  }">+</button>
+                                </div>
+                              `;
+              itemsDiv.appendChild(itemRow);
+            });
+
+            if (!lowerFilter || anyMatchInSubgroup) {
+              sgWrap.appendChild(itemsDiv);
+              groupEl.appendChild(sgWrap);
+            }
+          });
+
+          catalogContainer.appendChild(groupEl);
+        });
+
+        // Attach add handlers
+        Array.from(document.querySelectorAll(".add-item")).forEach((btn) =>
+          btn.addEventListener("click", (e) => {
+            const id = e.currentTarget.dataset.id;
+            addItemById(id);
+          })
+        );
+
+        // After rendering, if searching open all collapses that contain visible items
+        if (lowerFilter) {
+          // find all collapse elements and open those with children
+          Array.from(catalogContainer.querySelectorAll(".collapse")).forEach(
+            (cEl) => {
+              if (cEl.children.length > 0) {
+                const bs = bootstrap.Collapse.getOrCreateInstance(cEl, {
+                  toggle: false,
+                });
+                bs.show();
+              }
+            }
+          );
+        }
+      }
+
+      // ---------------------------
+      // Suche
+      // ---------------------------
+      const searchInput = document.getElementById("search");
+      searchInput.addEventListener("input", (e) =>
+        renderCatalog(e.target.value)
+      );
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          renderCatalog(e.target.value);
+        }
+      });
+      document.getElementById("reset").addEventListener("click", () => {
+        searchInput.value = "";
+        renderCatalog("");
+      });
+
+      // ---------------------------
+      // Add Item nach ID (sucht im Katalog)
+      // ---------------------------
+      function findItemById(id) {
+        for (const g of catalog) {
+          for (const s of g.subgroups) {
+            for (const it of s.items) {
+              if (it.id === id) return it;
+            }
+          }
+        }
+        return null;
+      }
+
+      function addItemById(id) {
+        const it = findItemById(id);
+        if (!it) return;
+        // clone data into selected list with default 1 quantity
+        selected.push({
+          uid: Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+          id: it.id,
+          title: it.title,
+          description: it.description || "",
+          unit: it.unit || "",
+          price: it.price === undefined || it.price === "" ? "" : it.price,
+          qty: "", // start empty so it's not shown as 0
+        });
+        renderSelected();
+      }
+
+      // ---------------------------
+      // Render ausgewählte Positionen (rechte Tabelle)
+      // ---------------------------
+      function renderSelected() {
+        const tbody = document.getElementById("invoiceItems");
+        tbody.innerHTML = "";
+        selected.forEach((s, idx) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                            <td>${idx + 1}</td>
+                            <td>
+                              <div class="fw-semibold">${escapeHtml(
+                                s.title
+                              )}</div>
+                              <div class="small text-muted">${escapeHtml(
+                                s.description
+                              )}</div>
+                            </td>
+                            <td class="align-middle">${escapeHtml(s.unit)}</td>
+                            <td><input data-uid="${
+                              s.uid
+                            }" data-field="qty" class="form-control form-control-sm qty-input" value="${
+            s.qty === "" ? "" : s.qty
+          }"></td>
+                            <td><input data-uid="${
+                              s.uid
+                            }" data-field="price" class="form-control form-control-sm price-input" value="${
+            s.price === "" ? "" : s.price
+          }"></td>
+                            <td class="text-end align-middle" data-uid-amt="${
+                              s.uid
+                            }">${formatRowAmount(s)}</td>
+                            <td class="text-center align-middle"><button class="btn btn-sm btn-danger remove-item" data-uid="${
+                              s.uid
+                            }">−</button></td>
+                          `;
+          tbody.appendChild(tr);
+        });
+
+        // attach events
+        Array.from(document.querySelectorAll(".remove-item")).forEach((b) =>
+          b.addEventListener("click", (e) => {
+            const uid = e.currentTarget.dataset.uid;
+            selected = selected.filter((x) => x.uid !== uid);
+            renderSelected();
+          })
+        );
+        Array.from(document.querySelectorAll("input[data-field]")).forEach(
+          (inp) => {
+            inp.addEventListener("input", (e) => {
+              const uid = e.target.dataset.uid;
+              const field = e.target.dataset.field;
+              const v = e.target.value.trim().replace(",", ".");
+              const idx = selected.findIndex((x) => x.uid === uid);
+              if (idx === -1) return;
+              if (field === "qty") {
+                selected[idx].qty = v === "" ? "" : parseFloat(v);
+              } else if (field === "price") {
+                selected[idx].price = v === "" ? "" : parseFloat(v);
+              }
+              // update amount cell
+              const amtCell = document.querySelector(`[data-uid-amt="${uid}"]`);
+              if (amtCell) amtCell.innerText = formatRowAmount(selected[idx]);
+              recalcSummary();
+            });
+          }
+        );
+
+        recalcSummary();
+      }
+
+      // Berechnet Zeilenbetrag, zeigt leer wenn menge oder preis leer ist
+      function formatRowAmount(item) {
+        if (
+          !item ||
+          !item.qty ||
+          item.qty === "" ||
+          !item.price ||
+          item.price === ""
+        )
+          return "";
+        const priceNum = parseFloat(item.price);
+        if (isNaN(priceNum) || !item.qty || item.qty === "") return "";
+        const amt = Number(item.qty) * priceNum;
+        return formatCurrency(amt);
+      }
+
+      // ---------------------------
+      // Summary Berechnung
+      // ---------------------------
+      function recalcSummary() {
+        let subtotal = 0;
+        selected.forEach((it) => {
+          if (!it.qty || it.qty === "" || !it.price || it.price === "") return;
+          const v = Number(it.qty) * Number(it.price);
+          if (!isNaN(v)) subtotal += v;
+        });
+        const discount =
+          parseFloat(document.getElementById("discount").value) || 0;
+        const vatRate = 20; // default; can be extended to changeable
+        const taxable = Math.max(0, subtotal - discount);
+        const vat = document.getElementById("showVat").checked
+          ? taxable * (vatRate / 100)
+          : 0;
+        const total = taxable + vat;
+
+        document.getElementById("sumSubtotal").innerText =
+          formatCurrency(subtotal);
+        document.getElementById("sumVat").innerText = formatCurrency(vat);
+        document.getElementById("sumTotal").innerText = formatCurrency(total);
+        document.getElementById("vatRate").innerText = vatRate;
+      }
+
+      document
+        .getElementById("discount")
+        .addEventListener("input", recalcSummary);
+      document.getElementById("showVat").addEventListener("change", () => {
+        document.getElementById("vatRow").style.display =
+          document.getElementById("showVat").checked ? "" : "none";
+        recalcSummary();
+      });
+
+      document.getElementById("exportPdf").addEventListener("click", () => {
+        const pdfContent = document.createElement("div");
+        pdfContent.style.padding = "20px";
+        pdfContent.style.fontFamily = "Inter, sans-serif";
+        pdfContent.style.fontSize = "12px";
+        pdfContent.style.color = "#000";
+
+        // LOGO
+        const logo = document.createElement("img");
+        logo.src =
+          "data:image/png;base64,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"; // Hier ggf. Base64 einfügen für Stabilität
+        logo.style.display = "block";
+        logo.style.margin = "0 auto 20px";
+        logo.style.maxHeight = "160px";
+        pdfContent.appendChild(logo);
+
+        // Überschrift
+        const docTypeText =
+          document.getElementById("docType").value === "rechnung"
+            ? "Rechnung"
+            : "Kostenvoranschlag";
+        const h1 = document.createElement("h2");
+        h1.style.textAlign = "center";
+        h1.style.marginBottom = "20px";
+        h1.style.marginTop = "20px";
+        h1.innerText = docTypeText;
+
+        // Sender / Empfänger & Dokumentinfos
+        const docNumber = document.getElementById("docNumber").value;
+        const [year, month, day] = document
+          .getElementById("docDate")
+          .value.split("-");
+        const docDateFormatted = `${day}.${month}.${year}`;
+        const referenceNumber = `${day}${month}${year}-${docNumber || "001"}`;
+
+        const infoTable = document.createElement("table");
+        infoTable.style.width = "100%";
+        infoTable.style.marginBottom = "20px";
+        infoTable.style.marginTop = "30px";
+        infoTable.innerHTML = `
+                      <tr>
+                        <td style="vertical-align: top; width: 50%;">
+                          <strong>Absender:</strong><br>${escapeHtml(
+                            document.getElementById("sender").value
+                          ).replace(/\n/g, "<br>")}
+                          <br><br>
+                          <strong>Empfänger:</strong><br>${escapeHtml(
+                            document.getElementById("recipient").value
+                          ).replace(/\n/g, "<br>")}
+                        </td>
+                        <td style="vertical-align: top; width: 50%;">
+                          <strong>${docTypeText} Nr.:</strong> ${escapeHtml(
+          docNumber
+        )}<br>
+                          <strong>Datum:</strong> ${escapeHtml(
+                            docDateFormatted
+                          )}<br><br>
+                          <strong>IBAN:</strong> ${escapeHtml(
+                            document.getElementById("paymentDetails").value
+                          )}<br>
+                          <strong>BIC:</strong> ${escapeHtml(
+                            document.getElementById("paymentBIC").value
+                          )}<br>
+                          <strong>Referenz:</strong> ${referenceNumber}
+                        </td>
+                      </tr>
+                    `;
+        pdfContent.appendChild(infoTable);
+
+        pdfContent.appendChild(h1);
+
+        // Einleitungstext
+        const intro = document.createElement("div");
+        intro.innerHTML = `<p>${escapeHtml(
+          document.getElementById("introText").value
+        ).replace(/\n/g, "<br>")}</p>`;
+        pdfContent.appendChild(intro);
+
+        // ---------------------------
+        // Tabelle Positionen mit automatischem Seitenumbruch
+        // ---------------------------
+        const chunkSize = 4; // max Items pro Seite
+        for (let i = 0; i < selected.length; i += chunkSize) {
+          const chunk = selected.slice(i, i + chunkSize);
+
+          const tbl = document.createElement("table");
+          tbl.style.width = "100%";
+          tbl.style.borderCollapse = "collapse";
+          tbl.style.marginTop = "10px";
+
+          // Header
+          tbl.innerHTML = `
+            <thead>
+              <tr style="background-color:#5a534d; color:#fff;">
+                <th style="padding:6px; width:5%; text-align:left">#</th>
+                <th style="padding:6px; width:45%; text-align:left">Bezeichnung</th>
+                <th style="padding:6px; width:10%; text-align:left">Einheit</th>
+                <th style="padding:6px; width:10%; text-align:left">Menge</th>
+                <th style="padding:6px; width:15%; text-align:left">Einzelpreis</th>
+                <th style="padding:6px; width:15%; text-align:left">Betrag</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${chunk
+                .map((s, idx) => {
+                  const globalIdx = i + idx;
+                  const borderBottom =
+                    globalIdx < selected.length - 1
+                      ? "border-bottom:1px solid #ccc;"
+                      : "";
+                  return `
+                  <tr style="${borderBottom}">
+                    <td style="padding:4px">${globalIdx + 1}</td>
+                    <td style="padding:4px">${escapeHtml(
+                      s.title
+                    )}<br><small>${escapeHtml(s.description)}</small></td>
+                    <td style="padding:4px">${escapeHtml(s.unit)}</td>
+                    <td style="padding:4px; text-align:left">${s.qty || ""}</td>
+                    <td style="padding:4px; text-align:left">${formatCurrency(
+                      s.price
+                    )}</td>
+                    <td style="padding:4px; text-align:left">${formatRowAmount(
+                      s
+                    )}</td>
+                  </tr>
+                `;
+                })
+                .join("")}
+            </tbody>
+          `;
+
+          // Page break nur, wenn nicht die erste Tabelle
+          if (i > 0) {
+            const pageBreakDiv = document.createElement("div");
+            pageBreakDiv.style.pageBreakBefore = "always";
+            pdfContent.appendChild(pageBreakDiv);
+          }
+
+          pdfContent.appendChild(tbl);
+        }
+        // Zusammenfassung
+        const summary = document.createElement("table");
+        summary.style.width = "100%";
+        summary.style.marginTop = "10px";
+        summary.style.textAlign = "right";
+        const discountVal =
+          parseFloat(document.getElementById("discount").value) || 0;
+        summary.innerHTML = `
+                  <tr>
+                    <td>
+                      <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">
+                        Zwischensumme: ${
+                          document.getElementById("sumSubtotal").innerText
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                  ${
+                    discountVal > 0
+                      ? `<tr><td>
+                          <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">
+                            Rabatt: ${discountVal} €
+                          </div>
+                        </td></tr>`
+                      : ""
+                  }
+                  <tr>
+                    <td>
+                      <div style="display:inline-block; padding-bottom:2px;">
+                        MwSt: ${document.getElementById("sumVat").innerText}
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div style="display:inline-block; font-weight:bold; border-top:2px solid #000; padding-top:2px;">
+                        Gesamt: ${document.getElementById("sumTotal").innerText}
+                      </div>
+                    </td>
+                  </tr>
+                  `;
+        pdfContent.appendChild(summary);
+
+        // Zahlungsinfo Text zwischen Tabelle und Haftung
+        const paymentText = document.createElement("div");
+        paymentText.style.marginTop = "15px";
+        paymentText.innerHTML = `<p>Ich bitte um Überweisung des oben genannten Betrags auf mein Konto<br>mit folgender <b>IBAN: AT95 1400 0027 1009 7944</b> binnen 14 Tagen.</p>`;
+        pdfContent.appendChild(paymentText);
+
+        // Haftungstext als Block
+        const notes = document.createElement("div");
+        notes.style.marginTop = "30px";
+        notes.style.whiteSpace = "pre-wrap"; // Zeilenumbrüche erhalten
+        notes.style.textAlign = "justify"; // Fließtext, Blockausrichtung
+        notes.style.lineHeight = "1.4";
+        notes.style.fontSize = "11px"; // optional, etwas kleiner für PDF
+        notes.style.color = "#000";
+        notes.innerText = document.getElementById("notes").value;
+        pdfContent.appendChild(notes);
+
+        // PDF generieren
+        html2pdf()
+          .set({
+            margin: 10,
+            filename: `${docTypeText}_${referenceNumber}.pdf`,
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+            pagebreak: { mode: ["css", "legacy"] },
+          })
+          .from(pdfContent)
+          .save();
+      });
+
+      // ---------------------------
+      // Init
+      // ---------------------------
+      renderCatalog();
+      renderSelected();
+      recalcSummary();
+    </script>
+  </body>
+</html>
