@@ -72,6 +72,56 @@
           flex-direction: column;
           gap: 12px;
         }
+
+        .left-pane,
+        .right-pane {
+          max-height: none;
+          overflow: visible;
+          padding: 12px;
+        }
+
+        .left-pane {
+          margin-bottom: 12px;
+        }
+
+        /* Inputs und Buttons etwas größer */
+        input.form-control,
+        select.form-select,
+        textarea.form-control {
+          font-size: 0.95rem;
+        }
+
+        .btn {
+          width: 100%;
+          margin-bottom: 6px;
+        }
+
+        /* Tabelle scrollen */
+        .right-pane table {
+          display: block;
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        /* Reduziere Schrift in Tabellen */
+        .right-pane table th,
+        .right-pane table td {
+          font-size: 0.85rem;
+          padding: 4px 6px;
+        }
+
+        /* Zusammenfassungsbereich: alles untereinander */
+        .col-md-8,
+        .col-md-4 {
+          width: 100%;
+          max-width: 100%;
+        }
+
+        /* Textareas in Zusammenfassung etwas kleiner */
+        #introText,
+        #notes {
+          font-size: 0.9rem;
+        }
       }
       @media print {
         #controls,
