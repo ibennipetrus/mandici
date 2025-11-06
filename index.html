@@ -3164,14 +3164,16 @@ Array.from(document.querySelectorAll("input[data-field], textarea[data-field]"))
         // ---------------------------
         // Tabelle Positionen mit automatischem Seitenumbruch
         // ---------------------------
-        const chunkSize = 4; // max Items pro Seite
-        for (let i = 0; i < selected.length; i += chunkSize) {
-          const chunk = selected.slice(i, i + chunkSize);
+const chunkSize = 4; // max Items pro Seite
+let pageBreakDone = false; // <-- Neue Flag
 
-          const tbl = document.createElement("table");
-          tbl.style.width = "100%";
-          tbl.style.borderCollapse = "collapse";
-          tbl.style.marginTop = "10px";
+for (let i = 0; i < selected.length; i += chunkSize) {
+  const chunk = selected.slice(i, i + chunkSize);
+
+  const tbl = document.createElement("table");
+  tbl.style.width = "100%";
+  tbl.style.borderCollapse = "collapse";
+  tbl.style.marginTop = "10px";
 
           // Header
           tbl.innerHTML = `
@@ -3221,14 +3223,15 @@ Array.from(document.querySelectorAll("input[data-field], textarea[data-field]"))
 
           // Page break nur, wenn nicht die erste Tabelle
           // Page break nur EINMAL nach den ersten 4 Positionen
-if (i === chunkSize) {
-  const pageBreakDiv = document.createElement("div");
-  pageBreakDiv.style.pageBreakBefore = "always";
-  pdfContent.appendChild(pageBreakDiv);
-}
+if (i >= chunkSize && !pageBreakDone) {
+    const pageBreakDiv = document.createElement("div");
+    pageBreakDiv.style.pageBreakBefore = "always";
+    pdfContent.appendChild(pageBreakDiv);
+    pageBreakDone = true; // <-- verhindert weitere Breaks
+  }
 
-          pdfContent.appendChild(tbl);
-        }
+  pdfContent.appendChild(tbl);
+}
         // Zusammenfassung
         const summary = document.createElement("table");
         summary.style.width = "100%";
@@ -3320,6 +3323,7 @@ if (i === chunkSize) {
     </script>
   </body>
 </html>
+
 
 
 
