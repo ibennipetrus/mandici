@@ -3223,11 +3223,12 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                 `;
 
           // Page break nur, wenn nicht die erste Tabelle
-          if (i > 0) {
-            const pageBreakDiv = document.createElement("div");
-            pageBreakDiv.style.pageBreakBefore = "always";
-            pdfContent.appendChild(pageBreakDiv);
-          }
+          // Page break nur EINMAL nach den ersten 4 Positionen
+if (i === chunkSize) {
+  const pageBreakDiv = document.createElement("div");
+  pageBreakDiv.style.pageBreakBefore = "always";
+  pdfContent.appendChild(pageBreakDiv);
+}
 
           pdfContent.appendChild(tbl);
         }
@@ -3322,4 +3323,5 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
     </script>
   </body>
 </html>
+
 
