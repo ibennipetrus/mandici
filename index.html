@@ -2899,9 +2899,12 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
           tr.innerHTML = `
                                   <td>${idx + 1}</td>
                                   <td>
-                                    <div class="fw-semibold">${escapeHtml(
-                                      s.title
-                                    )}</div>
+                                  <input 
+                                  data-uid="${s.uid}" 
+                                  data-field="title" 
+                                  class="form-control form-control-sm title-input fw-semibold mb-1" 
+                                  value="${escapeHtml(s.title)}"
+                                  />
                                     <textarea data-uid="${
                                       s.uid
                                     }" data-field="description" class="form-control form-control-sm desc-input mt-1"
@@ -2950,36 +2953,30 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
             renderSelected();
           })
         );
-        Array.from(document.querySelectorAll("input[data-field]")).forEach(
-          (inp) => {
-            inp.addEventListener("input", (e) => {
-              const uid = e.target.dataset.uid;
-              const field = e.target.dataset.field;
-              const v = e.target.value.trim().replace(",", ".");
-              const idx = selected.findIndex((x) => x.uid === uid);
-              if (idx === -1) return;
-              if (field === "qty") {
-                selected[idx].qty = v === "" ? "" : parseFloat(v);
-              } else if (field === "price") {
-                selected[idx].price = v === "" ? "" : parseFloat(v);
-              }
-              // update amount cell
-              const amtCell = document.querySelector(`[data-uid-amt="${uid}"]`);
-              if (amtCell) amtCell.innerText = formatRowAmount(selected[idx]);
-              recalcSummary();
-            });
-          }
-        );
+Array.from(document.querySelectorAll("input[data-field], textarea[data-field]")).forEach((inp) => {
+  inp.addEventListener("input", (e) => {
+    const uid = e.target.dataset.uid;
+    const field = e.target.dataset.field;
+    const v = e.target.value.trim().replace(",", ".");
+    const idx = selected.findIndex((x) => x.uid === uid);
+    if (idx === -1) return;
 
-        Array.from(
-          document.querySelectorAll("textarea[data-field='description']")
-        ).forEach((ta) => {
-          ta.addEventListener("input", (e) => {
-            const uid = e.target.dataset.uid;
-            const idx = selected.findIndex((x) => x.uid === uid);
-            if (idx !== -1) selected[idx].description = e.target.value;
-          });
-        });
+    if (field === "qty") {
+      selected[idx].qty = v === "" ? "" : parseFloat(v);
+    } else if (field === "price") {
+      selected[idx].price = v === "" ? "" : parseFloat(v);
+    } else if (field === "title" || field === "description") {
+      // Titel oder Beschreibung editierbar
+      selected[idx][field] = e.target.value.trim();
+    }
+
+    // Betrag automatisch updaten, falls relevant
+    const amtCell = document.querySelector(`[data-uid-amt="${uid}"]`);
+    if (amtCell) amtCell.innerText = formatRowAmount(selected[idx]);
+    recalcSummary();
+  });
+});
+
 
         document.addEventListener("input", (e) => {
           if (!e.target.classList.contains("amt-input")) return;
@@ -3323,5 +3320,6 @@ if (i === chunkSize) {
     </script>
   </body>
 </html>
+
 
 
