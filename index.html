@@ -284,6 +284,11 @@ Danke, dass Sie sich für mein Angebot entschieden haben. Der Auftrag ist nun er
 und ich berechne für folgende Leistungen:</textarea
               >
 
+              <label class="form-label mt-2">Überweisung</label>
+              <textarea id="payText" class="form-control" rows="3">
+Ich bitte um Überweisung des oben genannten Betrags auf mein Konto<br>mit folgender <b>IBAN: AT95 1400 0027 1009 7944</b> binnen 14 Tagen.</textarea
+              >
+
               <label class="form-label mt-2"
                 >Haftungsklausel (editierbar)</label
               >
@@ -707,7 +712,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   id: "g4-s2-i1",
                   title:
                     "Lose u. schwimmend verlegte Holz-/Bodenbeläge abbrechen und entsorgen",
-                  description: "",
+                  description:
+                    "Lose und schwimmend verlegte Holz- / Bodenbeläge inkl. Unterlagsmatten und Sockelleisten, abbrechen und entsorgen (ab 10,1m²)",
                   unit: "m²",
                   price: 13.9,
                 },
@@ -715,58 +721,65 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   id: "g4-s2-i2",
                   title:
                     "Verklebte/genagelte Holz-/Bodenbeläge abbrechen und entsorgen",
-                  description: "",
+                  description:
+                    "Verklebte/genagelte Holz-/Bodenbeläge inkl. Sockelleisten, abbrechen und entsorgen (ab 10,1m²)",
                   unit: "m²",
                   price: 18.6,
                 },
                 {
                   id: "g4-s2-i3",
                   title: "Untergrund (Estrich oder ähnliches) vorbereiten",
-                  description: "",
+                  description:
+                    "Untergrund (Estrich oder ähnliches) vorbereiten, schleifen, spachteln und Voranstrich (ab 10,1m²)",
                   unit: "m²",
                   price: 9.7,
                 },
                 {
                   id: "g4-s2-i4",
-                  title: "Nivellieren (Aufschlag zu 050203)",
-                  description: "",
+                  title: "Nivellieren",
+                  description: "(Aufschlag zu 050203)",
                   unit: "%",
-                  price: 30,
+                  price: "30%",
                 },
                 {
                   id: "g4-s2-i5",
                   title:
                     "PVC / Linoleum / Teppich - Beläge verlegen (ohne Material)",
-                  description: "",
+                  description:
+                    "PVC / Linoleum / Teppich - Beläge verlegen; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile (ab 10,1m²); ohne Material",
                   unit: "m²",
                   price: 23,
                 },
                 {
                   id: "g4-s2-i6",
                   title: "Aufschlag zu 050204",
-                  description: "",
+                  description:
+                    "Falls materialtechnisch erforderlich, verschweißen von Bahnen/Fliesen, auf die Verlegearbeiten",
                   unit: "%",
-                  price: 50,
+                  price: "50%",
                 },
                 {
                   id: "g4-s2-i7",
                   title:
                     "Laminat / Fertigparkett (schwimmend) verlegen (ohne Material)",
-                  description: "",
+                  description:
+                    "Laminat / Fertigparkett (schwimmend) verlegen; inkl. erforderlicher Unterlagsmatte, Sockelleisten und erforderlicher An- und Abschlussprofile (ab 10,1m²); ohne Material",
                   unit: "m²",
                   price: 30.3,
                 },
                 {
                   id: "g4-s2-i8",
                   title: "Verklebte Holz-/Bodenbeläge verlegen (ohne Material)",
-                  description: "",
+                  description:
+                    "Verklebte Holz-/Bodenbeläge verlegen; inkl. Sockelleisten und erforderlicher An- und Abschlussprofile (ab 10,1m²); ohne Material",
                   unit: "m²",
                   price: 42.5,
                 },
                 {
                   id: "g4-s2-i9",
                   title: "Partieller Austausch von Massivholzböden",
-                  description: "",
+                  description:
+                    "Partieller Austausch von Massivholzböden geklebt/genagelt;inkl. Material",
                   unit: "m²",
                   price: 134,
                 },
@@ -1174,7 +1187,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   description:
                     "25% Aufschlag zu Leistungspositionen 060301, 060302 & 060303",
                   unit: "%",
-                  price: 25.0,
+                  price: "25.0%",
                 },
               ],
             },
@@ -1406,8 +1419,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale bis 1,0m² Fliesen, Material: Standard / mittlere Qualität",
                   description: `Material: "Standard / mittlere Qualität" - Fliesen abschlagen, entsorgen, Untergrund vorbereiten, falls erforderlich Verschliessen von
-                  Stemmschlitze, ausgleichen. inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
-                  sowie Fahrtkosten bzw. Baustelleneinrichtung`,
+                        Stemmschlitze, ausgleichen. inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
+                        sowie Fahrtkosten bzw. Baustelleneinrichtung`,
                   unit: "PA",
                   price: 379.0,
                 },
@@ -1416,8 +1429,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale von 1,1m² bis 3,0m² Fliesen, Material: Standard / mittlere Qualität",
                   description: `Material: "Standard / mittlere Qualität" - Fliesen abschlagen, entsorgen, Untergrund vorbereiten, falls erforderlich Verschliessen von
-                  Stemmschlitze, ausgleichen, inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
-                  inkl. Reinigungskosten sowie Fahrtkosten bzw. Baustelleneinrichtung`,
+                        Stemmschlitze, ausgleichen, inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
+                        inkl. Reinigungskosten sowie Fahrtkosten bzw. Baustelleneinrichtung`,
                   unit: "PA",
                   price: 690.0,
                 },
@@ -1426,8 +1439,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale von 3,1m² bis 6,0m² Fliesen, Material: Standard / mittlere Qualität",
                   description: `Material: "Standard / mittlere Qualität" - Fliesen abschlagen, entsorgen, Untergrund vorbereiten, falls erforderlich Verschliessen von
-                  Stemmschlitze, ausgleichen, inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
-                  inkl. Reinigungskosten sowie Fahrtkosten bzw. Baustelleneinrichtung`,
+                        Stemmschlitze, ausgleichen, inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
+                        inkl. Reinigungskosten sowie Fahrtkosten bzw. Baustelleneinrichtung`,
                   unit: "PA",
                   price: 939.0,
                 },
@@ -1436,9 +1449,9 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale bis 6,0m² Fliesen, Material: Exklusiv",
                   description: `Material: "EXKLUSIV" - Fliesen abschlagen, entsorgen, Untergrund vorbereiten, falls erforderlich Verschliessen von Stemmschlitze,
-                  ausgleichen, inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
-                  inkl. Reinigungskosten sowie Fahrtkosten bzw. Baustelleneinrichtung
-                  Preisvereinbarung mit SV`,
+                        ausgleichen, inkl. Fliesenmaterial, verlegen inkl. Verfugung und Silikonverfugung, falls erforderlich Estrichverdübeln;
+                        inkl. Reinigungskosten sowie Fahrtkosten bzw. Baustelleneinrichtung
+                        Preisvereinbarung mit SV`,
                   unit: "PA",
                   price: "VBmSV",
                 },
@@ -1622,7 +1635,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale bis 1m² Gipskartonöffnungen verschliessen",
                   description: `Kleinflächenpauschale bis 1m² Gipskartonöffnungen verschliessen und maler- /fliesenlegerfertig herstellen
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung inkl. Entsorgung`,
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung inkl. Entsorgung`,
                   unit: "PA",
                   price: 177.0,
                 },
@@ -1631,9 +1644,9 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale von 1,1m² bis 5,0m² Gipskartonöffnungen verschliessen",
                   description: `Kleinflächenpauschale 1,1m² bis 5,0m² Gipskartonbeplankungen-/Verkleidung (ein-/mehrfach) inkl. Unterkonstruktion, abbrechen und liefern;
-                  inkl. notwendiger Isolierungsmaßnahmen;
-                  Maler-/Fliesenlegerfertig herstellen;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung inkl. Entsorgung`,
+                        inkl. notwendiger Isolierungsmaßnahmen;
+                        Maler-/Fliesenlegerfertig herstellen;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung inkl. Entsorgung`,
                   unit: "PA",
                   price: 473.7,
                 },
@@ -1641,10 +1654,10 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   id: "g7-s1-i3",
                   title: "Installationsschächte Gipskartonverkleidung",
                   description: `Installationsschächte Gipskartonbeplankungen-/Verkleidung (mehrfach) inkl. Unterkonstruktion, abbrechen und liefern;
-                  inkl. notwendiger Isolierungsmaßnahmen;
-                  Maler-/Fliesenlegerfertig herstellen;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung inkl. Entsorgung
-                  Preisvereinbarung mit SV`,
+                        inkl. notwendiger Isolierungsmaßnahmen;
+                        Maler-/Fliesenlegerfertig herstellen;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung inkl. Entsorgung
+                        Preisvereinbarung mit SV`,
                   unit: "PA",
                   price: "VBmSV",
                 },
@@ -1653,7 +1666,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Wand- Deckenputz innen abbrechen und neu herstellen bis 2,5m²",
                   description: `Kleinflächenpauschale bis 2,5m² Wand- Deckenputz innen abschlagen und Sanierputz aufbringen inkl. Fahrtkosten
-                  bzw. Baustelleneinrichtung inkl. Entsorgung`,
+                        bzw. Baustelleneinrichtung inkl. Entsorgung`,
                   unit: "PA",
                   price: 288.4,
                 },
@@ -1662,7 +1675,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Wand- Deckenputz innen abbrechen und neu herstellen bis 5,0m²",
                   description: `Kleinflächenpauschale bis 5,0² Wand- Deckenputz innen abschlagen und Sanierputz aufbringen inkl. Fahrtkosten
-                  bzw. Baustelleneinrichtung inkl. Entsorgung`,
+                        bzw. Baustelleneinrichtung inkl. Entsorgung`,
                   unit: "PA",
                   price: 403.8,
                 },
@@ -1848,7 +1861,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Estrich abbrechen, vertragen, entsorgen und neu herstellen Speedestrich (bis max. 2,0m²)",
                   description: `inkl. Trittschall-/Wärmedämmung, ergänzen der Beschüttung (bis max 2,0m²)
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
                   unit: "PA",
                   price: 699.2,
                 },
@@ -1857,7 +1870,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Estrich abbrechen, vertragen, entsorgen und neu herstellen (bis max. 4,0m²)",
                   description: `inkl. Trittschall-/Wärmedämmung, ergänzen der Beschüttung (bis max 4,0m²)
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
                   unit: "PA",
                   price: 794.6,
                 },
@@ -2080,8 +2093,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale bis 5,0m² Holzdecke, Material: Standard / mittlere Qualität",
                   description: `Holzdecke/Paneele/Vertäfelung, abbrechen, entsorgen, liefern und montieren;
-                  inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                        inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
                   unit: "PA",
                   price: 576.3,
                 },
@@ -2090,8 +2103,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale von 5,1m² bis 10,0m² Holzdecke, Material: Standard / mittlere Qualität",
                   description: `Holzdecke/Paneele/Vertäfelung, abbrechen, entsorgen, liefern und montieren;
-                  inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                        inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
                   unit: "PA",
                   price: 768.4,
                 },
@@ -2100,8 +2113,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale bis 5,0m² Holzdecke, Material: Standard / mittlere Qualität, inkl. Unterkonstruktion",
                   description: `Holzdecke/Paneele/Vertäfelung inkl. Unterkonstruktion, abbrechen, entsorgen, liefern und montieren;
-                  inkl. Abschlussleisten;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                        inkl. Abschlussleisten;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
                   unit: "PA",
                   price: 724.3,
                 },
@@ -2110,8 +2123,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale von 5,1m² bis 10,0m² Holzdecke, Material: Standard / mittlere Qualität, inkl. Unterkonstruktion",
                   description: `Holzdecke/Paneele/Vertäfelung inkl. Unterkonstruktion, abbrechen, entsorgen, liefern und montieren;
-                  inkl. Abschlussleisten;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
+                        inkl. Abschlussleisten;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung`,
                   unit: "PA",
                   price: 988.8,
                 },
@@ -2120,9 +2133,9 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale bis 5,0m² Holzdecke, Material: Exklusiv",
                   description: `Holzdecke/Paneele/Vertäfelung, abbrechen, entsorgen, liefern und montieren;
-                  inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung
-                  Preisvereinbarung mit SV`,
+                        inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung
+                        Preisvereinbarung mit SV`,
                   unit: "PA",
                   price: "VBmSV",
                 },
@@ -2131,9 +2144,9 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale von 5,1m² bis 10,0m² Holzdecke, Material: Exklusiv",
                   description: `Holzdecke/Paneele/Vertäfelung, abbrechen, entsorgen, liefern und montieren;
-                  inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung
-                  Preisvereinbarung mit SV`,
+                        inkl. Abschlussleisten sowie inkl. allfällig notwendiger Reparaturarbeiten an der Unterkonstruktion;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung
+                        Preisvereinbarung mit SV`,
                   unit: "PA",
                   price: "VBmSV",
                 },
@@ -2142,9 +2155,9 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale bis 5,0m² Holzdecke, Material: Exklusiv, inkl. Unterkonstruktion",
                   description: `Holzdecke/Paneele/Vertäfelung inkl. Unterkonstruktion, abbrechen, entsorgen, liefern und montieren;
-                  inkl. Abschlussleisten;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung
-                  Preisvereinbarung mit SV`,
+                        inkl. Abschlussleisten;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung
+                        Preisvereinbarung mit SV`,
                   unit: "PA",
                   price: "VBmSV",
                 },
@@ -2153,9 +2166,9 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Kleinflächenpauschale von 5,1m² bis 10,0m² Holzdecke, Material: Exklusiv, inkl. Unterkonstruktion",
                   description: `Holzdecke/Paneele/Vertäfelung inkl. Unterkonstruktion, abbrechen, entsorgen, liefern und montieren;
-                  inkl. Abschlussleisten;
-                  inkl. Fahrtkosten bzw. Baustelleneinrichtung
-                  Preisvereinbarung mit SV`,
+                        inkl. Abschlussleisten;
+                        inkl. Fahrtkosten bzw. Baustelleneinrichtung
+                        Preisvereinbarung mit SV`,
                   unit: "PA",
                   price: "VBmSV",
                 },
@@ -2170,8 +2183,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Holzdecke/Paneele/Vertäfelung abbrechen und entsorgen ohne Unterkonstruktion (ab 10,1m²)",
                   description: `Holzdecke/Paneele/Vertäfelung abbrechen und entsorgen (ohne Unterkonstruktion);
-                  inkl. Abschlussleisten
-                  ab 10,1m² Fläche`,
+                        inkl. Abschlussleisten
+                        ab 10,1m² Fläche`,
                   unit: "m²",
                   price: 24.4,
                 },
@@ -2180,8 +2193,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Holzdecke/Paneele/Vertäfelung abbrechen und entsorgen inkl. Unterkonstruktion (ab 10,1m²)",
                   description: `Holzdecke/Paneele/Vertäfelung abbrechen und entsorgen (inkl. Unterkonstruktion);
-                  inkl. Abschlussleisten
-                  ab 10,1m² Fläche`,
+                        inkl. Abschlussleisten
+                        ab 10,1m² Fläche`,
                   unit: "m²",
                   price: 28.7,
                 },
@@ -2190,7 +2203,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Holzdecke/Paneele/Vertäfelung montieren ohne Unterkonstruktion (ab 10,1m²)",
                   description: `Holzdecke/Paneele/Vertäfelung montieren (ohne Unterkonstruktion)
-                  ab 10,1m² Fläche, ohne Material`,
+                        ab 10,1m² Fläche, ohne Material`,
                   unit: "m²",
                   price: 26.7,
                 },
@@ -2199,7 +2212,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Holzdecke/Paneele/Vertäfelung montieren inkl. Unterkonstruktion (ab 10,1m²)",
                   description: `Holzdecke/Paneele/Vertäfelung montieren (inkl. Unterkonstruktion)
-                  ab 10,1m² Fläche, ohne Material`,
+                        ab 10,1m² Fläche, ohne Material`,
                   unit: "m²",
                   price: 45.6,
                 },
@@ -2294,7 +2307,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Innentüre mit Zarge bis 2 m² Durchgangslichte (Buche Esche Eiche)",
                   description: `Innentüre mit Zarge, mittlere Qualität erneuern
-                  inkl. Abbruch und Entsorgung - Mat. Röhrenspann`,
+                        inkl. Abbruch und Entsorgung - Mat. Röhrenspann`,
                   unit: "STK",
                   price: 771.7,
                 },
@@ -2310,7 +2323,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Zarge für Innentüren bis 2m² Durchgangslichte (Buche Esche Eiche)",
                   description: `Zarge mittlerer Qualität erneuern wie Bestand, incl. Abbruch, aller
-                  erforderlichen Anschlußarbeiten und Entsorgung`,
+                        erforderlichen Anschlußarbeiten und Entsorgung`,
                   unit: "STK",
                   price: 513.6,
                 },
@@ -2374,7 +2387,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Russbeaufschlagung Reinigen von Wand- / Bodenfliesen, ohne Fugennachbehandlung",
                   description: `Reinigen im Handwischverfahren und/oder Hochdruckreiniger unter Verwendung geeigneter chemischer Reinigungsmittel
-            Eine allfällige erforderliche Fugennachbehandlung ist gesondert anzubieten`,
+                  Eine allfällige erforderliche Fugennachbehandlung ist gesondert anzubieten`,
                   unit: "m²",
                   price: 12.3,
                 },
@@ -2391,7 +2404,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Russbeaufschlagung Reinigen von Holz- und Kunststofffenster (bis 2,0m² Fläche)",
                   description: `Reinigen im Handwischverfahren unter Verwendung von dementsprechenden Reinigungsmaterialien;
-            Bis 2,0m² Fläche`,
+                  Bis 2,0m² Fläche`,
                   unit: "ST",
                   price: 75.0,
                 },
@@ -2400,7 +2413,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title:
                     "Russbeaufschlagung Reinigen von Holz- und Kunststofffenster (ab 2,0m² Fläche)",
                   description: `Reinigen im Handwischverfahren unter Verwendung von dementsprechenden Reinigungsmaterialien;
-            Ab 2,0m² Fläche`,
+                  Ab 2,0m² Fläche`,
                   unit: "ST",
                   price: 88.8,
                 },
@@ -2436,7 +2449,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title: "15% Aufschlag auf Reinigungsmaterial auf Regie",
                   description: "",
                   unit: "%",
-                  price: 15,
+                  price: "15%",
                 },
               ],
             },
@@ -2602,7 +2615,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   description:
                     "Zuschlag für Subunternehmerleistungen (ohne Berücksichtigung von Skontovereinbarungen). Dieser Zuschlag gilt nicht für die obgenannten Professionen ausgenommen Spezialarbeiten wie z.B. Mosaikparkett, Stuckarbeiten, Spachteltechnik, etc. Darüberhinaus gilt der Zuschlag nicht für das Installateurgewerbe. Die 7% gelten bis zu einer Schadenssumme von € 5.000,--. Darüberhinaus ist der Zuschlag nachvollziehbar nach Aufwand abzurechnen.",
                   unit: "%",
-                  price: 7,
+                  price: "7%",
                 },
               ],
             },
@@ -2628,42 +2641,42 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                   title: "€ 800,01 bis € 5.000,00",
                   description: "",
                   unit: "%",
-                  price: 9.0,
+                  price: "9%",
                 },
                 {
                   id: "g13-s1-i3",
                   title: "€ 5.000,01 bis € 10.000,00",
                   description: "",
                   unit: "%",
-                  price: 7.0,
+                  price: "7%",
                 },
                 {
                   id: "g13-s1-i4",
                   title: "10.000,01 bis € 15.000,00",
                   description: "",
                   unit: "%",
-                  price: 5.0,
+                  price: "5%",
                 },
                 {
                   id: "g13-s1-i5",
                   title: "€ 15.000,01 bis € 30.000,00",
                   description: "",
                   unit: "%",
-                  price: 4.0,
+                  price: "4%",
                 },
                 {
                   id: "g13-s1-i6",
                   title: "€ 30.000,01 bis € 50.000,00",
                   description: "",
                   unit: "%",
-                  price: 3.0,
+                  price: "3%",
                 },
                 {
                   id: "g13-s1-i7",
                   title: "ab € 50.000,01",
                   description: "",
                   unit: "%",
-                  price: 2.0,
+                  price: "2%",
                 },
                 {
                   id: "g13-s1-i8",
@@ -2723,9 +2736,9 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
           groupHeader.innerHTML = `<div class="fw-bold">${escapeHtml(
             group.title
           )}</div>
-                            <div class="small text-muted">${
-                              group.subgroups.length
-                            } Sub</div>`;
+                                  <div class="small text-muted">${
+                                    group.subgroups.length
+                                  } Sub</div>`;
           groupEl.appendChild(groupHeader);
 
           group.subgroups.forEach((sg) => {
@@ -2768,27 +2781,27 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
               itemRow.className =
                 "d-flex align-items-center justify-content-between p-2 mb-1 border rounded item-row";
               itemRow.innerHTML = `
-                                <div style="flex:1">
-                                  <div class="fw-semibold">${escapeHtml(
-                                    it.title
-                                  )}</div>
-                                  <div class="small text-muted">${escapeHtml(
-                                    it.description || ""
-                                  )}</div>
-                                  <div class="small text-muted">Einheit: ${escapeHtml(
-                                    it.unit || ""
-                                  )} — Preis: ${
+                                      <div style="flex:1">
+                                        <div class="fw-semibold">${escapeHtml(
+                                          it.title
+                                        )}</div>
+                                        <div class="small text-muted">${escapeHtml(
+                                          it.description || ""
+                                        )}</div>
+                                        <div class="small text-muted">Einheit: ${escapeHtml(
+                                          it.unit || ""
+                                        )} — Preis: ${
                 it.price !== undefined && it.price !== ""
                   ? formatCurrency(it.price)
                   : "-"
               }</div>
-                                </div>
-                                <div style="width:90px; text-align:right">
-                                  <button class="btn btn-sm btn-outline-primary add-item" data-id="${
-                                    it.id
-                                  }">+</button>
-                                </div>
-                              `;
+                                      </div>
+                                      <div style="width:90px; text-align:right">
+                                        <button class="btn btn-sm btn-outline-primary add-item" data-id="${
+                                          it.id
+                                        }">+</button>
+                                      </div>
+                                    `;
               itemsDiv.appendChild(itemRow);
             });
 
@@ -2882,33 +2895,48 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
         selected.forEach((s, idx) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-                            <td>${idx + 1}</td>
-                            <td>
-                              <div class="fw-semibold">${escapeHtml(
-                                s.title
-                              )}</div>
-                              <div class="small text-muted">${escapeHtml(
-                                s.description
-                              )}</div>
-                            </td>
-                            <td class="align-middle">${escapeHtml(s.unit)}</td>
-                            <td><input data-uid="${
-                              s.uid
-                            }" data-field="qty" class="form-control form-control-sm qty-input" value="${
+                                  <td>${idx + 1}</td>
+                                  <td>
+                                    <div class="fw-semibold">${escapeHtml(
+                                      s.title
+                                    )}</div>
+                                    <textarea data-uid="${
+                                      s.uid
+                                    }" data-field="description" class="form-control form-control-sm desc-input mt-1"
+                                      rows="2">${escapeHtml(
+                                        s.description || ""
+                                      )}</textarea>
+                                  </td>
+                                  <td class="align-middle">${escapeHtml(
+                                    s.unit
+                                  )}</td>
+                                  <td><input data-uid="${
+                                    s.uid
+                                  }" data-field="qty" class="form-control form-control-sm qty-input" value="${
             s.qty === "" ? "" : s.qty
           }"></td>
-                            <td><input data-uid="${
-                              s.uid
-                            }" data-field="price" class="form-control form-control-sm price-input" value="${
+                                  <td><input data-uid="${
+                                    s.uid
+                                  }" data-field="price" class="form-control form-control-sm price-input" value="${
             s.price === "" ? "" : s.price
           }"></td>
-                            <td class="text-end align-middle" data-uid-amt="${
-                              s.uid
-                            }">${formatRowAmount(s)}</td>
-                            <td class="text-center align-middle"><button class="btn btn-sm btn-danger remove-item" data-uid="${
-                              s.uid
-                            }">−</button></td>
-                          `;
+                                  <td class="text-end align-middle" data-uid-amt="${
+                                    s.uid
+                                  }">
+        ${
+          typeof s.price === "string" && s.price.trim().endsWith("%")
+            ? `<input data-uid-amt="${
+                s.uid
+              }" class="form-control form-control-sm amt-input" value="${
+                s.manualAmount || ""
+              }">`
+            : formatRowAmount(s)
+        }
+      </td>
+                                  <td class="text-center align-middle"><button class="btn btn-sm btn-danger remove-item" data-uid="${
+                                    s.uid
+                                  }">−</button></td>
+                                `;
           tbody.appendChild(tr);
         });
 
@@ -2941,6 +2969,29 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
           }
         );
 
+        Array.from(
+          document.querySelectorAll("textarea[data-field='description']")
+        ).forEach((ta) => {
+          ta.addEventListener("input", (e) => {
+            const uid = e.target.dataset.uid;
+            const idx = selected.findIndex((x) => x.uid === uid);
+            if (idx !== -1) selected[idx].description = e.target.value;
+          });
+        });
+
+        document.addEventListener("input", (e) => {
+          if (!e.target.classList.contains("amt-input")) return;
+
+          const uid = e.target.dataset.uidAmt;
+          const idx = selected.findIndex((x) => x.uid === uid);
+          if (idx === -1) return;
+
+          const v = parseFloat(e.target.value.replace(",", "."));
+          selected[idx].manualAmount = isNaN(v) ? undefined : v;
+
+          recalcSummary();
+        });
+
         recalcSummary();
       }
 
@@ -2954,6 +3005,20 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
           item.price === ""
         )
           return "";
+
+        if (item.manualAmount !== undefined) {
+          return formatCurrency(item.manualAmount);
+        }
+
+        if (typeof item.price === "string" && item.price.trim().endsWith("%")) {
+          // Prozentwert: erzeuge Input-Feld für manuelle Eingabe
+          return `<input data-uid-amt="${
+            item.uid
+          }" class="form-control form-control-sm amt-input" value="${
+            item.manualAmount || ""
+          }">`;
+        }
+
         const priceNum = parseFloat(item.price);
         if (isNaN(priceNum) || !item.qty || item.qty === "") return "";
         const amt = Number(item.qty) * priceNum;
@@ -2966,7 +3031,13 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
       function recalcSummary() {
         let subtotal = 0;
         selected.forEach((it) => {
+          if (it.manualAmount !== undefined && it.manualAmount !== "") {
+            subtotal += Number(it.manualAmount);
+            return;
+          }
           if (!it.qty || it.qty === "" || !it.price || it.price === "") return;
+          if (typeof it.price === "string" && it.price.trim().endsWith("%"))
+            return;
           const v = Number(it.qty) * Number(it.price);
           if (!isNaN(v)) subtotal += v;
         });
@@ -2993,6 +3064,23 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
         document.getElementById("vatRow").style.display =
           document.getElementById("showVat").checked ? "" : "none";
         recalcSummary();
+      });
+
+      function getAmountForPdf(item) {
+        if (item.manualAmount !== undefined && item.manualAmount !== "") {
+          return formatCurrency(item.manualAmount);
+        }
+        if (typeof item.price === "string" && item.price.trim().endsWith("%")) {
+          return item.price;
+        }
+        const priceNum = parseFloat(item.price);
+        if (isNaN(priceNum) || !item.qty || item.qty === "") return "";
+        return formatCurrency(Number(item.qty) * priceNum);
+      }
+
+      // --- PDF Export Handler ---
+      document.getElementById("exportPdf").addEventListener("click", () => {
+        const pdfContent = document.createElement("div");
       });
 
       document.getElementById("exportPdf").addEventListener("click", () => {
@@ -3035,33 +3123,34 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
         infoTable.style.marginBottom = "20px";
         infoTable.style.marginTop = "30px";
         infoTable.innerHTML = `
-                      <tr>
-                        <td style="vertical-align: top; width: 50%;">
-                          <strong>Absender:</strong><br>${escapeHtml(
-                            document.getElementById("sender").value
-                          ).replace(/\n/g, "<br>")}
-                          <br><br>
-                          <strong>Empfänger:</strong><br>${escapeHtml(
-                            document.getElementById("recipient").value
-                          ).replace(/\n/g, "<br>")}
-                        </td>
-                        <td style="vertical-align: top; width: 50%;">
-                          <strong>${docTypeText} Nr.:</strong> ${escapeHtml(
+                            <tr>
+                              <td style="vertical-align: top; width: 50%;">
+                                <strong>Absender:</strong><br>${escapeHtml(
+                                  document.getElementById("sender").value
+                                ).replace(/\n/g, "<br>")}
+                                <br><br>
+                                <strong>Empfänger:</strong><br>${escapeHtml(
+                                  document.getElementById("recipient").value
+                                ).replace(/\n/g, "<br>")}
+                              </td>
+                              <td style="vertical-align: top; width: 50%;">
+                                <strong>${docTypeText} Nr.:</strong> ${escapeHtml(
           docNumber
         )}<br>
-                          <strong>Datum:</strong> ${escapeHtml(
-                            docDateFormatted
-                          )}<br><br>
-                          <strong>IBAN:</strong> ${escapeHtml(
-                            document.getElementById("paymentDetails").value
-                          )}<br>
-                          <strong>BIC:</strong> ${escapeHtml(
-                            document.getElementById("paymentBIC").value
-                          )}<br>
-                          <strong>Referenz:</strong> ${referenceNumber}
-                        </td>
-                      </tr>
-                    `;
+                                <strong>Datum:</strong> ${escapeHtml(
+                                  docDateFormatted
+                                )}<br><br>
+                                <strong>IBAN:</strong> ${escapeHtml(
+                                  document.getElementById("paymentDetails")
+                                    .value
+                                )}<br>
+                                <strong>BIC:</strong> ${escapeHtml(
+                                  document.getElementById("paymentBIC").value
+                                )}<br>
+                                <strong>Referenz:</strong> ${referenceNumber}
+                              </td>
+                            </tr>
+                          `;
         pdfContent.appendChild(infoTable);
 
         pdfContent.appendChild(h1);
@@ -3087,44 +3176,49 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
 
           // Header
           tbl.innerHTML = `
-            <thead>
-              <tr style="background-color:#5a534d; color:#fff;">
-                <th style="padding:6px; width:5%; text-align:left">#</th>
-                <th style="padding:6px; width:45%; text-align:left">Bezeichnung</th>
-                <th style="padding:6px; width:10%; text-align:left">Einheit</th>
-                <th style="padding:6px; width:10%; text-align:left">Menge</th>
-                <th style="padding:6px; width:15%; text-align:left">Einzelpreis</th>
-                <th style="padding:6px; width:15%; text-align:left">Betrag</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${chunk
-                .map((s, idx) => {
-                  const globalIdx = i + idx;
-                  const borderBottom =
-                    globalIdx < selected.length - 1
-                      ? "border-bottom:1px solid #ccc;"
-                      : "";
-                  return `
-                  <tr style="${borderBottom}">
-                    <td style="padding:4px">${globalIdx + 1}</td>
-                    <td style="padding:4px">${escapeHtml(
-                      s.title
-                    )}<br><small>${escapeHtml(s.description)}</small></td>
-                    <td style="padding:4px">${escapeHtml(s.unit)}</td>
-                    <td style="padding:4px; text-align:left">${s.qty || ""}</td>
-                    <td style="padding:4px; text-align:left">${formatCurrency(
-                      s.price
-                    )}</td>
-                    <td style="padding:4px; text-align:left">${formatRowAmount(
-                      s
-                    )}</td>
-                  </tr>
+                  <thead>
+                    <tr style="background-color:#5a534d; color:#fff;">
+                      <th style="padding:6px; width:5%; text-align:left">#</th>
+                      <th style="padding:6px; width:45%; text-align:left">Bezeichnung</th>
+                      <th style="padding:6px; width:10%; text-align:left">Einheit</th>
+                      <th style="padding:6px; width:10%; text-align:left">Menge</th>
+                      <th style="padding:6px; width:15%; text-align:left">Einzelpreis</th>
+                      <th style="padding:6px; width:15%; text-align:left">Betrag</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${chunk
+                      .map((s, idx) => {
+                        const globalIdx = i + idx;
+                        const borderBottom =
+                          globalIdx < selected.length - 1
+                            ? "border-bottom:1px solid #ccc;"
+                            : "";
+                        return `
+                        <tr style="${borderBottom}">
+                          <td style="padding:4px">${globalIdx + 1}</td>
+                          <td style="padding:4px">${escapeHtml(
+                            s.title
+                          )}<br><small>${escapeHtml(s.description)}</small></td>
+                          <td style="padding:4px">${escapeHtml(s.unit)}</td>
+                          <td style="padding:4px; text-align:left">${
+                            s.qty || ""
+                          }</td>
+                          <td style="padding:4px; text-align:left">${
+                            typeof s.price === "string" &&
+                            s.price.trim().endsWith("%")
+                              ? s.price
+                              : formatCurrency(s.price)
+                          }</td>
+                          <td style="padding:4px; text-align:left">${getAmountForPdf(
+                            s
+                          )}</td>
+                        </tr>
+                      `;
+                      })
+                      .join("")}
+                  </tbody>
                 `;
-                })
-                .join("")}
-            </tbody>
-          `;
 
           // Page break nur, wenn nicht die erste Tabelle
           if (i > 0) {
@@ -3143,46 +3237,55 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
         const discountVal =
           parseFloat(document.getElementById("discount").value) || 0;
         summary.innerHTML = `
-                  <tr>
-                    <td>
-                      <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">
-                        Zwischensumme: ${
-                          document.getElementById("sumSubtotal").innerText
+                        <tr>
+                          <td>
+                            <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">
+                              Zwischensumme: ${
+                                document.getElementById("sumSubtotal").innerText
+                              }
+                            </div>
+                          </td>
+                        </tr>
+                        ${
+                          discountVal > 0
+                            ? `<tr><td>
+                                <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">
+                                  Rabatt: ${discountVal} €
+                                </div>
+                              </td></tr>`
+                            : ""
                         }
-                      </div>
-                    </td>
-                  </tr>
-                  ${
-                    discountVal > 0
-                      ? `<tr><td>
-                          <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">
-                            Rabatt: ${discountVal} €
-                          </div>
-                        </td></tr>`
-                      : ""
-                  }
-                  <tr>
-                    <td>
-                      <div style="display:inline-block; padding-bottom:2px;">
-                        MwSt: ${document.getElementById("sumVat").innerText}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div style="display:inline-block; font-weight:bold; border-top:2px solid #000; padding-top:2px;">
-                        Gesamt: ${document.getElementById("sumTotal").innerText}
-                      </div>
-                    </td>
-                  </tr>
-                  `;
+                        <tr>
+                          <td>
+                            <div style="display:inline-block; padding-bottom:2px;">
+                              MwSt: ${
+                                document.getElementById("sumVat").innerText
+                              }
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <div style="display:inline-block; font-weight:bold; border-top:2px solid #000; padding-top:2px;">
+                              Gesamt: ${
+                                document.getElementById("sumTotal").innerText
+                              }
+                            </div>
+                          </td>
+                        </tr>
+                        `;
         pdfContent.appendChild(summary);
 
         // Zahlungsinfo Text zwischen Tabelle und Haftung
-        const paymentText = document.createElement("div");
-        paymentText.style.marginTop = "15px";
-        paymentText.innerHTML = `<p>Ich bitte um Überweisung des oben genannten Betrags auf mein Konto<br>mit folgender <b>IBAN: AT95 1400 0027 1009 7944</b> binnen 14 Tagen.</p>`;
-        pdfContent.appendChild(paymentText);
+        const paymentTextValue = document
+          .getElementById("payText")
+          ?.value?.trim();
+        if (paymentTextValue) {
+          const paymentText = document.createElement("div");
+          paymentText.style.marginTop = "15px";
+          paymentText.innerHTML = `<p>${paymentTextValue}</p>`;
+          pdfContent.appendChild(paymentText);
+        }
 
         // Haftungstext als Block
         const notes = document.createElement("div");
