@@ -2788,13 +2788,15 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
                                         <div class="small text-muted">${escapeHtml(
                                           it.description || ""
                                         )}</div>
-                                        <div class="small text-muted">Einheit: ${escapeHtml(
-                                          it.unit || ""
-                                        )} — Preis: ${
-                it.price !== undefined && it.price !== ""
-                  ? formatCurrency(it.price)
+                                        <div class="small text-muted">
+  Einheit: ${escapeHtml(it.unit || "")} — Preis: ${
+                typeof it.price === "string" && it.price.trim().endsWith("%")
+                  ? it.price // Prozentwert direkt anzeigen
+                  : it.price !== undefined && it.price !== ""
+                  ? formatCurrency(it.price) // normale Zahl formatieren
                   : "-"
-              }</div>
+              }
+</div>
                                       </div>
                                       <div style="width:90px; text-align:right">
                                         <button class="btn btn-sm btn-outline-primary add-item" data-id="${
@@ -3320,3 +3322,4 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
     </script>
   </body>
 </html>
+
