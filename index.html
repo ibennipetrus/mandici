@@ -3165,73 +3165,100 @@ Array.from(document.querySelectorAll("input[data-field], textarea[data-field]"))
         // Tabelle Positionen mit automatischem Seitenumbruch
         // ---------------------------
 const chunkSize = 4; // max Items pro Seite
-let pageBreakDone = false; // <-- Neue Flag
+let pageBreakDone = false; // Seite 2 Break-Flag
+let currentTable; // Speichert die aktuelle Tabelle
 
 for (let i = 0; i < selected.length; i += chunkSize) {
   const chunk = selected.slice(i, i + chunkSize);
 
+  // Wenn schon ein Pagebreak gemacht wurde UND der neue Chunk nur 1 Item hat:
+  // dann keine neue Tabelle mit Header erzeugen
+  if (pageBreakDone && chunk.length === 1 && currentTable) {
+    const tbody = currentTable.querySelector("tbody");
+    const s = chunk[0];
+    const globalIdx = i;
+    const borderBottom =
+      globalIdx < selected.length - 1 ? "border-bottom:1px solid #ccc;" : "";
+
+    tbody.innerHTML += `
+      <tr style="${borderBottom}">
+        <td style="padding:4px">${globalIdx + 1}</td>
+        <td style="padding:4px">${escapeHtml(s.title)}<br><small>${escapeHtml(
+      s.description
+    )}</small></td>
+        <td style="padding:4px">${escapeHtml(s.unit)}</td>
+        <td style="padding:4px; text-align:left">${s.qty || ""}</td>
+        <td style="padding:4px; text-align:left">${
+          typeof s.price === "string" && s.price.trim().endsWith("%")
+            ? s.price
+            : formatCurrency(s.price)
+        }</td>
+        <td style="padding:4px; text-align:left">${getAmountForPdf(s)}</td>
+      </tr>
+    `;
+    continue; // Überspringe restliche Erzeugung
+  }
+
+  // Neue Tabelle mit Header erstellen
   const tbl = document.createElement("table");
   tbl.style.width = "100%";
   tbl.style.borderCollapse = "collapse";
   tbl.style.marginTop = "10px";
 
-          // Header
-          tbl.innerHTML = `
-                  <thead>
-                    <tr style="background-color:#5a534d; color:#fff;">
-                      <th style="padding:6px; width:5%; text-align:left">#</th>
-                      <th style="padding:6px; width:45%; text-align:left">Bezeichnung</th>
-                      <th style="padding:6px; width:10%; text-align:left">Einheit</th>
-                      <th style="padding:6px; width:10%; text-align:left">Menge</th>
-                      <th style="padding:6px; width:15%; text-align:left">Einzelpreis</th>
-                      <th style="padding:6px; width:15%; text-align:left">Betrag</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${chunk
-                      .map((s, idx) => {
-                        const globalIdx = i + idx;
-                        const borderBottom =
-                          globalIdx < selected.length - 1
-                            ? "border-bottom:1px solid #ccc;"
-                            : "";
-                        return `
-                        <tr style="${borderBottom}">
-                          <td style="padding:4px">${globalIdx + 1}</td>
-                          <td style="padding:4px">${escapeHtml(
-                            s.title
-                          )}<br><small>${escapeHtml(s.description)}</small></td>
-                          <td style="padding:4px">${escapeHtml(s.unit)}</td>
-                          <td style="padding:4px; text-align:left">${
-                            s.qty || ""
-                          }</td>
-                          <td style="padding:4px; text-align:left">${
-                            typeof s.price === "string" &&
-                            s.price.trim().endsWith("%")
-                              ? s.price
-                              : formatCurrency(s.price)
-                          }</td>
-                          <td style="padding:4px; text-align:left">${getAmountForPdf(
-                            s
-                          )}</td>
-                        </tr>
-                      `;
-                      })
-                      .join("")}
-                  </tbody>
-                `;
+  tbl.innerHTML = `
+    <thead>
+      <tr style="background-color:#5a534d; color:#fff;">
+        <th style="padding:6px; width:5%; text-align:left">#</th>
+        <th style="padding:6px; width:45%; text-align:left">Bezeichnung</th>
+        <th style="padding:6px; width:10%; text-align:left">Einheit</th>
+        <th style="padding:6px; width:10%; text-align:left">Menge</th>
+        <th style="padding:6px; width:15%; text-align:left">Einzelpreis</th>
+        <th style="padding:6px; width:15%; text-align:left">Betrag</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${chunk
+        .map((s, idx) => {
+          const globalIdx = i + idx;
+          const borderBottom =
+            globalIdx < selected.length - 1
+              ? "border-bottom:1px solid #ccc;"
+              : "";
+          return `
+            <tr style="${borderBottom}">
+              <td style="padding:4px">${globalIdx + 1}</td>
+              <td style="padding:4px">${escapeHtml(s.title)}<br><small>${escapeHtml(
+            s.description
+          )}</small></td>
+              <td style="padding:4px">${escapeHtml(s.unit)}</td>
+              <td style="padding:4px; text-align:left">${s.qty || ""}</td>
+              <td style="padding:4px; text-align:left">${
+                typeof s.price === "string" && s.price.trim().endsWith("%")
+                  ? s.price
+                  : formatCurrency(s.price)
+              }</td>
+              <td style="padding:4px; text-align:left">${getAmountForPdf(
+                s
+              )}</td>
+            </tr>
+          `;
+        })
+        .join("")}
+    </tbody>
+  `;
 
-          // Page break nur, wenn nicht die erste Tabelle
-          // Page break nur EINMAL nach den ersten 4 Positionen
-if (i >= chunkSize && !pageBreakDone) {
+  // Page break NUR EINMAL nach den ersten 4 Positionen
+  if (i >= chunkSize && !pageBreakDone) {
     const pageBreakDiv = document.createElement("div");
     pageBreakDiv.style.pageBreakBefore = "always";
     pdfContent.appendChild(pageBreakDiv);
-    pageBreakDone = true; // <-- verhindert weitere Breaks
+    pageBreakDone = true;
   }
 
   pdfContent.appendChild(tbl);
+  currentTable = tbl; // Speichern, um später ggf. anzuhängen
 }
+
         // Zusammenfassung
         const summary = document.createElement("table");
         summary.style.width = "100%";
@@ -3323,6 +3350,7 @@ if (i >= chunkSize && !pageBreakDone) {
     </script>
   </body>
 </html>
+
 
 
 
