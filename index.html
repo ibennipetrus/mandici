@@ -334,6 +334,8 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
     <!-- Bibliotheken -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.1.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <script>
       // ---------------------------
@@ -2953,30 +2955,31 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
             renderSelected();
           })
         );
-Array.from(document.querySelectorAll("input[data-field], textarea[data-field]")).forEach((inp) => {
-  inp.addEventListener("input", (e) => {
-    const uid = e.target.dataset.uid;
-    const field = e.target.dataset.field;
-    const v = e.target.value.trim().replace(",", ".");
-    const idx = selected.findIndex((x) => x.uid === uid);
-    if (idx === -1) return;
+        Array.from(
+          document.querySelectorAll("input[data-field], textarea[data-field]")
+        ).forEach((inp) => {
+          inp.addEventListener("input", (e) => {
+            const uid = e.target.dataset.uid;
+            const field = e.target.dataset.field;
+            const v = e.target.value.trim().replace(",", ".");
+            const idx = selected.findIndex((x) => x.uid === uid);
+            if (idx === -1) return;
 
-    if (field === "qty") {
-      selected[idx].qty = v === "" ? "" : parseFloat(v);
-    } else if (field === "price") {
-      selected[idx].price = v === "" ? "" : parseFloat(v);
-    } else if (field === "title" || field === "description") {
-      // Titel oder Beschreibung editierbar
-      selected[idx][field] = e.target.value.trim();
-    }
+            if (field === "qty") {
+              selected[idx].qty = v === "" ? "" : parseFloat(v);
+            } else if (field === "price") {
+              selected[idx].price = v === "" ? "" : parseFloat(v);
+            } else if (field === "title" || field === "description") {
+              // Titel oder Beschreibung editierbar
+              selected[idx][field] = e.target.value.trim();
+            }
 
-    // Betrag automatisch updaten, falls relevant
-    const amtCell = document.querySelector(`[data-uid-amt="${uid}"]`);
-    if (amtCell) amtCell.innerText = formatRowAmount(selected[idx]);
-    recalcSummary();
-  });
-});
-
+            // Betrag automatisch updaten, falls relevant
+            const amtCell = document.querySelector(`[data-uid-amt="${uid}"]`);
+            if (amtCell) amtCell.innerText = formatRowAmount(selected[idx]);
+            recalcSummary();
+          });
+        });
 
         document.addEventListener("input", (e) => {
           if (!e.target.classList.contains("amt-input")) return;
@@ -3077,17 +3080,35 @@ Array.from(document.querySelectorAll("input[data-field], textarea[data-field]"))
         return formatCurrency(Number(item.qty) * priceNum);
       }
 
-      // --- PDF Export Handler ---
-      document.getElementById("exportPdf").addEventListener("click", () => {
-        const pdfContent = document.createElement("div");
-      });
+      // =====================
+      // EXPORT HILFSFUNKTIONEN
+      // =====================
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function createParagraphFromText(text) {
+        // Wandelt Zeilenumbrüche in Paragraphenbrüche für DOCX um
+        return new window.docx.Paragraph({
+          children: text
+            .split("\n")
+            .map((line) => new window.docx.TextRun({ text: line, break: 1 })),
+        });
+      }
 
       document.getElementById("exportPdf").addEventListener("click", () => {
         const pdfContent = document.createElement("div");
+        pdfContent.style.width = "210mm"; // A4-Breite
+        pdfContent.style.minHeight = "297mm"; // A4-Höhe
         pdfContent.style.padding = "20px";
         pdfContent.style.fontFamily = "Inter, sans-serif";
         pdfContent.style.fontSize = "12px";
         pdfContent.style.color = "#000";
+        pdfContent.style.boxSizing = "border-box";
+        pdfContent.style.overflow = "visible";
 
         // LOGO
         const logo = document.createElement("img");
@@ -3162,30 +3183,36 @@ Array.from(document.querySelectorAll("input[data-field], textarea[data-field]"))
         pdfContent.appendChild(intro);
 
         // ---------------------------
-        // Tabelle Positionen mit automatischem Seitenumbruch
+        // Tabelle Positionen (automatischer Seitenumbruch durch PDF-Renderer)
         // ---------------------------
-const chunkSize = 4; // max Items pro Seite
-let pageBreakDone = false;
-let currentTable; // speichert die letzte Tabelle auf Seite 2
+        const itemsTable = document.createElement("table");
+        itemsTable.style.width = "100%";
+        itemsTable.style.borderCollapse = "collapse";
+        itemsTable.style.marginTop = "10px";
 
-for (let i = 0; i < selected.length; i += chunkSize) {
-  const chunk = selected.slice(i, i + chunkSize);
-
-  // Sonderfall: Wenn wir bereits einen Pagebreak gemacht haben,
-  // KEINE neue Tabelle mit Header erzeugen – einfach an die alte anhängen
-  if (pageBreakDone && currentTable) {
-    const tbody = currentTable.querySelector("tbody");
-
-    chunk.forEach((s, idx) => {
-      const globalIdx = i + idx;
-      const borderBottom =
-        globalIdx < selected.length - 1 ? "border-bottom:1px solid #ccc;" : "";
-      tbody.innerHTML += `
-        <tr style="${borderBottom}">
-          <td style="padding:4px">${globalIdx + 1}</td>
+        // Tabellen-Header
+        itemsTable.innerHTML = `
+  <thead>
+    <tr style="background-color:#5a534d; color:#fff;">
+      <th style="padding:6px; width:5%; text-align:left">#</th>
+      <th style="padding:6px; width:45%; text-align:left">Bezeichnung</th>
+      <th style="padding:6px; width:10%; text-align:left">Einheit</th>
+      <th style="padding:6px; width:10%; text-align:left">Menge</th>
+      <th style="padding:6px; width:15%; text-align:left">Einzelpreis</th>
+      <th style="padding:6px; width:15%; text-align:left">Betrag</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${selected
+      .map(
+        (s, idx) => `
+        <tr style="${
+          idx < selected.length - 1 ? "border-bottom:1px solid #ccc;" : ""
+        }">
+          <td style="padding:4px">${idx + 1}</td>
           <td style="padding:4px">${escapeHtml(s.title)}<br><small>${escapeHtml(
-        s.description
-      )}</small></td>
+          s.description
+        )}</small></td>
           <td style="padding:4px">${escapeHtml(s.unit)}</td>
           <td style="padding:4px; text-align:left">${s.qty || ""}</td>
           <td style="padding:4px; text-align:left">${
@@ -3195,118 +3222,55 @@ for (let i = 0; i < selected.length; i += chunkSize) {
           }</td>
           <td style="padding:4px; text-align:left">${getAmountForPdf(s)}</td>
         </tr>
-      `;
-    });
+      `
+      )
+      .join("")}
+  </tbody>
+`;
 
-    continue; // gehe direkt zum nächsten Chunk (kein Header!)
-  }
+        pdfContent.appendChild(itemsTable);
 
-  // Neue Tabelle mit Header (nur das erste Mal oder vor Pagebreak)
-  const tbl = document.createElement("table");
-  tbl.style.width = "100%";
-  tbl.style.borderCollapse = "collapse";
-  tbl.style.marginTop = "10px";
-
-  tbl.innerHTML = `
-    <thead>
-      <tr style="background-color:#5a534d; color:#fff;">
-        <th style="padding:6px; width:5%; text-align:left">#</th>
-        <th style="padding:6px; width:45%; text-align:left">Bezeichnung</th>
-        <th style="padding:6px; width:10%; text-align:left">Einheit</th>
-        <th style="padding:6px; width:10%; text-align:left">Menge</th>
-        <th style="padding:6px; width:15%; text-align:left">Einzelpreis</th>
-        <th style="padding:6px; width:15%; text-align:left">Betrag</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${chunk
-        .map((s, idx) => {
-          const globalIdx = i + idx;
-          const borderBottom =
-            globalIdx < selected.length - 1
-              ? "border-bottom:1px solid #ccc;"
-              : "";
-          return `
-            <tr style="${borderBottom}">
-              <td style="padding:4px">${globalIdx + 1}</td>
-              <td style="padding:4px">${escapeHtml(s.title)}<br><small>${escapeHtml(
-            s.description
-          )}</small></td>
-              <td style="padding:4px">${escapeHtml(s.unit)}</td>
-              <td style="padding:4px; text-align:left">${s.qty || ""}</td>
-              <td style="padding:4px; text-align:left">${
-                typeof s.price === "string" && s.price.trim().endsWith("%")
-                  ? s.price
-                  : formatCurrency(s.price)
-              }</td>
-              <td style="padding:4px; text-align:left">${getAmountForPdf(
-                s
-              )}</td>
-            </tr>
-          `;
-        })
-        .join("")}
-    </tbody>
-  `;
-
-  // Nur EINMAL einen Pagebreak nach der ersten Seite
-  if (i >= chunkSize && !pageBreakDone) {
-    const pageBreakDiv = document.createElement("div");
-    pageBreakDiv.style.pageBreakBefore = "always";
-    pdfContent.appendChild(pageBreakDiv);
-    pageBreakDone = true;
-  }
-
-  pdfContent.appendChild(tbl);
-  currentTable = tbl;
-}
-
-
+        // ---------------------------
         // Zusammenfassung
+        // ---------------------------
         const summary = document.createElement("table");
         summary.style.width = "100%";
         summary.style.marginTop = "10px";
         summary.style.textAlign = "right";
         const discountVal =
           parseFloat(document.getElementById("discount").value) || 0;
+
         summary.innerHTML = `
-                        <tr>
-                          <td>
-                            <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">
-                              Zwischensumme: ${
-                                document.getElementById("sumSubtotal").innerText
-                              }
-                            </div>
-                          </td>
-                        </tr>
-                        ${
-                          discountVal > 0
-                            ? `<tr><td>
-                                <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">
-                                  Rabatt: ${discountVal} €
-                                </div>
-                              </td></tr>`
-                            : ""
-                        }
-                        <tr>
-                          <td>
-                            <div style="display:inline-block; padding-bottom:2px;">
-                              MwSt: ${
-                                document.getElementById("sumVat").innerText
-                              }
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div style="display:inline-block; font-weight:bold; border-top:2px solid #000; padding-top:2px;">
-                              Gesamt: ${
-                                document.getElementById("sumTotal").innerText
-                              }
-                            </div>
-                          </td>
-                        </tr>
-                        `;
+  <tr>
+    <td>
+      <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">
+        Zwischensumme: ${document.getElementById("sumSubtotal").innerText}
+      </div>
+    </td>
+  </tr>
+  ${
+    discountVal > 0
+      ? `<tr><td>
+      <div style="display:inline-block; border-bottom:1px solid #ccc; padding-bottom:2px;">Rabatt: ${discountVal} €</div>
+    </td></tr>`
+      : ""
+  }
+  <tr>
+    <td>
+      <div style="display:inline-block; padding-bottom:2px;">
+        MwSt: ${document.getElementById("sumVat").innerText}
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <div style="display:inline-block; font-weight:bold; border-top:2px solid #000; padding-top:2px;">
+        Gesamt: ${document.getElementById("sumTotal").innerText}
+      </div>
+    </td>
+  </tr>
+`;
+
         pdfContent.appendChild(summary);
 
         // Zahlungsinfo Text zwischen Tabelle und Haftung
@@ -3336,7 +3300,7 @@ for (let i = 0; i < selected.length; i += chunkSize) {
           .set({
             margin: 10,
             filename: `${docTypeText}_${referenceNumber}.pdf`,
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: { scale: 2, useCORS: true, width: 210 * 4 },
             jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
             pagebreak: { mode: ["css", "legacy"] },
           })
@@ -3353,9 +3317,3 @@ for (let i = 0; i < selected.length; i += chunkSize) {
     </script>
   </body>
 </html>
-
-
-
-
-
-
