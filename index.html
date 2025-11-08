@@ -142,6 +142,29 @@
           page-break-before: always; /* erzwingt Umbruch vor diesem Element */
         }
       }
+
+      @media (max-width: 900px) {
+        .search-wrap {
+          flex-wrap: wrap; /* erlaubt Umbruch auf zweite Zeile */
+          width: 100%;
+        }
+
+        .search-wrap input#search {
+          flex: 1 1 100%;
+          min-width: 100%; /* nimmt volle Breite ein */
+        }
+
+        .search-wrap select#docType,
+        .search-wrap button#reset,
+        .search-wrap button#exportPdf {
+          flex: 1 1 100%;
+          min-width: 100%;
+        }
+
+        .search-wrap button#exportPdf {
+          margin-left: 0 !important; /* entfernt den leichten Versatz rechts */
+        }
+      }
     </style>
   </head>
   <body>
@@ -2771,8 +2794,6 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
             sg.items.forEach((it) => {
               const searchText = (
                 it.title +
-                " " +
-                (it.description || "") +
                 " " +
                 (it.unit || "")
               ).toLowerCase();
