@@ -3314,7 +3314,7 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
         notes.style.lineHeight = "1.4";
         notes.style.fontSize = "11px"; // optional, etwas kleiner für PDF
         notes.style.color = "#000";
-        notes.innerText = document.getElementById("notes").value;
+        notes.innerHTML = document.getElementById("notes").value;
         pdfContent.appendChild(notes);
 
         // PDF generieren
@@ -3339,5 +3339,6 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
     </script>
   </body>
 </html>
+
 
 
