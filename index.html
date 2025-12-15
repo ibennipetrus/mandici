@@ -110,6 +110,9 @@
           <option value="angebot">Kostenvoranschlag</option>
           <option value="rechnung">Rechnung</option>
         </select>
+         <button id="swapColumns" class="btn btn-success ms-2">
+          Katalog ↔ Editor tauschen
+        </button>
         <button id="updatePreview" class="btn btn-success ms-2">
           Preview aktualisieren
         </button>
@@ -118,8 +121,9 @@
         </button>
       </div>
 
-      <div class="row three-col gap-4">
-        <div class="top-pane col-lg-6 col-12">
+      <div class="row gap-4">
+        <div class="col-lg-7 col-12 d-flex flex-column gap-2" id="leftColumn">
+          <div class="top-pane">
           <div class="mb-2 small-muted">
             Katalog (Gruppen → Subgruppen → Einträge). Klicke auf das
             <strong>+</strong> um in das Angebot zu übernehmen.
@@ -138,9 +142,9 @@
           </div>
 
           <div id="catalogContainer"></div>
-        </div>
-
-        <div class="editor-pane col-lg-6 col-12">
+          </div>
+          
+<div class="editor-pane">
           <div
             class="d-flex gap-3 mb-3 justify-content-between align-items-start"
           >
@@ -307,13 +311,15 @@ Die Steuerschuld geht gemäß§ 19 Abs. 1a UStG 1994 auf den Empfänger über.
 Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen der angemeldeten freien Gewerbe (Hausbetreuung, Entrümpelung und einfache Schadensbehebung). Tätigkeiten, die einem reglementierten Gewerbe vorbehalten sind – insbesondere Malerei-, Bodenleger- oder Fliesenlegerarbeiten – werden nicht ausgeführt. Die durchgeführten Arbeiten dienen der Instandhaltung, Reinigung und einfachen Reparatur ohne fachgewerbliche Ausführungspflicht. Eine Gewährleistung oder Haftung für Tätigkeiten, die über diesen Leistungsumfang hinausgehen, sowie für allfällige Folgeschäden außerhalb der vereinbarten Arbeiten, wird ausgeschlossen.</textarea
           >
         </div>
-      </div>
-      <div
-          class="preview-pane overflow-hidden"
-          id="pdfPreviewstyle"
-        >
-          <iframe id="pdfPreview" style="width: 100%; height: 100%"></iframe>
+
         </div>
+
+        <div class="preview-pane col-lg-4 col-12 overflow-hidden" id="pdfPreviewstyle">
+ <iframe id="pdfPreview" style="width: 100%; height: 100%"></iframe>
+        </div>
+        
+      </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
@@ -2694,6 +2700,19 @@ Die angebotenen und ausgeführten Leistungen erfolgen ausschließlich im Rahmen 
           : "0,00 €";
       }
 
+document.getElementById("swapColumns").addEventListener("click", () => {
+  const leftColumn = document.getElementById("leftColumn");
+  const katalog = leftColumn.querySelector(".top-pane");
+  const editor = leftColumn.querySelector(".editor-pane");
+
+  if (katalog.nextElementSibling === editor) {
+    // Wenn Katalog oben ist, Editor nach oben bringen
+    leftColumn.insertBefore(editor, katalog);
+  } else {
+    // Wenn Editor oben ist, Katalog nach oben bringen
+    leftColumn.insertBefore(katalog, editor);
+  }
+});
       // ---------------------------
       // Katalog rendern
       // ---------------------------
